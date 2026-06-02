@@ -79,7 +79,14 @@ function AppContent() {
             </svg>
             <span className="text-[15px] md:text-[18px] font-titular text-white tracking-widest whitespace-nowrap">TEKKEN IRON ARENA</span>
           </div>
-          <Nav activeTab={activeTab} setActiveTab={setActiveTab} />
+          {/* Desktop Nav Only in Header */}
+          <div className="hidden md:block">
+            <Nav activeTab={activeTab} setActiveTab={setActiveTab} />
+          </div>
+          {/* Mobile Bottom Nav is rendered inside Nav component, but we hide Nav from header on mobile to prevent top icons */}
+          <div className="md:hidden">
+            <Nav activeTab={activeTab} setActiveTab={setActiveTab} />
+          </div>
         </header>
 
         <main className={`bg-[#0c0f12] bg-[radial-gradient(circle_at_top_right,rgba(225,29,72,0.05),transparent)] overflow-hidden min-h-0 relative z-10 flex flex-col pt-0 ${activeTab === 'dashboard' ? 'pb-24 md:pb-0' : 'pb-20 md:pb-0'}`}>

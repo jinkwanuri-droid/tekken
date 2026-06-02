@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useTournament } from '../store';
-import { Settings, Save, AlertTriangle, FileText } from 'lucide-react';
+import { Settings, Save, AlertTriangle, FileText, UserPlus, Trash2, PlusCircle, Edit3, Check } from 'lucide-react';
 import { Team, Player } from '../types';
 
 export const TeamsView = () => {
@@ -8,6 +8,7 @@ export const TeamsView = () => {
   
   const [numTeams, setNumTeams] = useState(state.settings.numTeams);
   const [playersPerTeam, setPlayersPerTeam] = useState(state.settings.playersPerTeam);
+  const [isEditMode, setIsEditMode] = useState(false);
   
   const handleUpdateSettings = () => {
     const isDestructive = numTeams !== state.settings.numTeams || playersPerTeam !== state.settings.playersPerTeam;
@@ -19,6 +20,26 @@ export const TeamsView = () => {
         setNumTeams(state.settings.numTeams);
         setPlayersPerTeam(state.settings.playersPerTeam);
       }
+    }
+  };
+
+  const handleAddTeam = () => {
+    if (state.teams.length >= 32) {
+      alert('최대 32개 팀까지만 추가할 수 있습니다.');
+      return;
+    }
+    if (confirm('신규 팀을 추가하면 대진표가 초기화됩니다. 추가하시겠습니까?')) {
+      dispatch({ type: 'ADD_TEAM' });
+    }
+  };
+
+  const handleDeleteTeam = (teamId: string, teamName: string) => {
+    if (state.teams.length <= 2) {
+      alert('최소 2개 팀은 유지되어야 합니다.');
+      return;
+    }
+    if (confirm(`'${teamName}' 팀을 삭제하시겠습니까? 삭제 시 대진표가 초기화됩니다.`)) {
+      dispatch({ type: 'DELETE_TEAM', payload: teamId });
     }
   };
 
@@ -100,11 +121,45 @@ export const TeamsView = () => {
 
 
         {/* Teams List Area */}
-        <h2 className="text-xl font-titular text-ink mb-6">팀명 및 참가자 편집</h2>
+        <div className="flex items-center gap-4 mb-6">
+          <h2 className="text-xl font-titular text-ink">팀명 및 참가자 편집</h2>
+          <button 
+            onClick={() => setIsEditMode(!isEditMode)}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-black transition-all ${
+              isEditMode 
+                ? 'bg-primary text-white shadow-[0_0_15px_rgba(225,29,72,0.3)]' 
+                : 'bg-surface-2 text-ink-subtle border border-hairline hover:text-white hover:bg-surface-3'
+            }`}
+          >
+            {isEditMode ? (
+              <><Check className="w-3 h-3" /> 편집 완료</>
+            ) : (
+              <><Edit3 className="w-3 h-3" /> 팀 편집 (추가/삭제)</>
+            )}
+          </button>
+        </div>
+
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
           {state.teams.map((team, idx) => (
-             <TeamEditor key={team.id} team={team} index={idx} dispatch={dispatch} />
+             <TeamEditor 
+               key={team.id} 
+               team={team} 
+               index={idx} 
+               dispatch={dispatch} 
+               isEditMode={isEditMode}
+               onDelete={() => handleDeleteTeam(team.id, team.name)}
+             />
           ))}
+          
+          {isEditMode && (
+            <button 
+              onClick={handleAddTeam}
+              className="group border-2 border-dashed border-hairline rounded-xl p-8 flex flex-col items-center justify-center gap-3 text-ink-tertiary hover:border-primary/50 hover:text-primary transition-all bg-surface-1/30"
+            >
+              <PlusCircle className="w-10 h-10 group-hover:scale-110 transition-transform" />
+              <div className="text-sm font-bold">새로운 팀 추가하기</div>
+            </button>
+          )}
         </div>
 
       </div>
@@ -113,7 +168,7 @@ export const TeamsView = () => {
 };
 
 
-const TeamEditor: React.FC<{ team: Team; index: number; dispatch: any }> = ({ team, index, dispatch }) => {
+const TeamEditor: React.FC<{ team: Team; index: number; dispatch: any; isEditMode?: boolean; onDelete?: () => void }> = ({ team, index, dispatch, isEditMode, onDelete }) => {
   const [isBatchMode, setIsBatchMode] = useState(false);
   const [batchText, setBatchText] = useState(`[${team.name}]\n${team.players.map(p => p.name).join('\n')}`);
 
@@ -142,14 +197,26 @@ const TeamEditor: React.FC<{ team: Team; index: number; dispatch: any }> = ({ te
   };
 
   return (
-    <div className="glass-panel p-6 rounded-xl border-hairline relative">
-       <button 
-         onClick={() => setIsBatchMode(!isBatchMode)}
-         className="absolute top-6 right-6 text-ink-subtle hover:text-white transition-colors"
-         title="일괄 입력 모드"
-       >
-         <FileText className="w-4 h-4" />
-       </button>
+    <div className={`glass-panel p-6 rounded-xl border-hairline relative transition-all ${isEditMode ? 'ring-2 ring-primary/20 bg-primary/5 border-primary/30' : ''}`}>
+       <div className="absolute top-6 right-6 flex items-center gap-3">
+         <button 
+           onClick={() => setIsBatchMode(!isBatchMode)}
+           className="text-ink-subtle hover:text-white transition-colors"
+           title="일괄 입력 모드"
+         >
+           <FileText className="w-4 h-4" />
+         </button>
+         
+         {isEditMode && (
+           <button 
+             onClick={onDelete}
+             className="text-pink-500/60 hover:text-pink-500 transition-colors"
+             title="팀 삭제"
+           >
+             <Trash2 className="w-4 h-4" />
+           </button>
+         )}
+       </div>
 
        <div className="flex items-center gap-4 mb-6 border-b border-hairline pb-4 pr-8">
          <div className="w-10 h-10 rounded-full bg-surface-2 flex flex-shrink-0 items-center justify-center font-mono text-ink-subtle border border-hairline">

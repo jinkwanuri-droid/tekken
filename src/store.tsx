@@ -508,6 +508,8 @@ type Action =
   | { type: 'RESET_SET_RESULT'; payload: { matchId: string; setIndex: number } }
   | { type: 'COMPLETE_MATCH'; payload: string }
   | { type: 'BATCH_UPDATE_TEAM'; payload: { teamId: string; name: string; players: string[] } }
+  | { type: 'ADD_TEAM' }
+  | { type: 'DELETE_TEAM'; payload: string }
   | { type: 'SYNC_FROM_SERVER'; payload: TournamentState };
 
 const LOCAL_STORAGE_KEY = 'bj_lol_tournament_bracket_state';
@@ -775,6 +777,46 @@ const tournamentReducer = (state: TournamentState, action: Action): TournamentSt
         currentMatchId: state.currentMatchId === matchId ? null : state.currentMatchId
       };
     }
+    case 'ADD_TEAM': {
+      const newNumTeams = state.settings.numTeams + 1;
+      if (newNumTeams > 32) return state;
+      
+      const newSettings = { ...state.settings, numTeams: newNumTeams };
+      
+      // Create a specific new team object to append
+      const newTeam: Team = {
+        id: `T_DYNAMIC_${uuid()}`,
+        name: `새로운 팀 ${newNumTeams}`,
+        players: Array.from({ length: state.settings.playersPerTeam }).map((_, j) => ({
+          id: `P_DYNAMIC_${uuid()}_${j + 1}`,
+          name: `선수 ${j + 1}`,
+        })),
+      };
+
+      const { teams, matches } = generateInitialData(
+        newNumTeams, 
+        newSettings.playersPerTeam, 
+        newSettings.matchFormat || 'hybrid',
+        [...state.teams, newTeam]
+      );
+      return { ...state, settings: newSettings, teams, matches, currentMatchId: null };
+    }
+    case 'DELETE_TEAM': {
+      const teamId = action.payload;
+      if (state.teams.length <= 2) return state;
+
+      const newNumTeams = state.teams.length - 1;
+      const newTeams = state.teams.filter(t => t.id !== teamId);
+      const newSettings = { ...state.settings, numTeams: newNumTeams };
+
+      const { teams, matches } = generateInitialData(
+        newNumTeams,
+        newSettings.playersPerTeam,
+        newSettings.matchFormat || 'hybrid',
+        newTeams
+      );
+      return { ...state, settings: newSettings, teams, matches, currentMatchId: null };
+    }
     default:
       return state;
   }
@@ -806,23 +848,14 @@ export const TournamentProvider = ({ children }: { children: ReactNode }) => {
             dispatch({ type: 'SYNC_FROM_SERVER', payload: result.data });
             hasSyncedRef.current = true;
           } else {
-            // Server has no state yet, we are the first one or server was reset
-            // We can now safely push our local state to the server
-            const currentStr = JSON.stringify(state);
-            lastServerStateRef.current = currentStr;
-            
-            await fetch('/api/tournament-state', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ state }),
-            });
+            // Server has no state yet or failed to load.
+            // We mark as synced so that our local state (reloaded from localStorage) can be pushed to server.
             hasSyncedRef.current = true;
           }
         }
       } catch (err) {
         console.warn('Failed to perform initial server synchronization:', err);
         // Even if failed, we mark as synced after attempt to allow local changes to flow if needed
-        // but strictly we might want to retry. For now, let's allow it to proceed.
         hasSyncedRef.current = true;
       }
     }

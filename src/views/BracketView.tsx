@@ -13,6 +13,7 @@ export const BracketView = () => {
   const [selectedMatchId, setSelectedMatchId] = useState<string | null>(null);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [activeTab, setActiveTab] = useState<'league' | 'tournament'>('league');
+  const [isShuffling, setIsShuffling] = useState(false);
 
   React.useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -59,12 +60,27 @@ export const BracketView = () => {
     return getMatchPlaceholder(matchId, side);
   };
 
-  const handleShuffle = () => {
-    if (isHybrid) {
-      dispatch({ type: 'SHUFFLE_GROUPS' });
-    } else {
-      dispatch({ type: 'SHUFFLE_BRACKET' });
+  const handleShuffle = async () => {
+    if (!canShuffle || isShuffling) return;
+    
+    if (!window.confirm('대전을 바꾸겠습니까?')) return;
+
+    setIsShuffling(true);
+    
+    // Perform around 20 "fake" shuffles for animation effect
+    const iters = 20;
+    for (let i = 0; i < iters; i++) {
+      if (isHybrid) {
+        dispatch({ type: 'SHUFFLE_GROUPS' });
+      } else {
+        dispatch({ type: 'SHUFFLE_BRACKET' });
+      }
+      // Speed up slightly towards the end
+      const delay = 60 + (i * 2);
+      await new Promise(resolve => setTimeout(resolve, delay));
     }
+    
+    setIsShuffling(false);
   };
 
   const handleResetConfirm = () => {
@@ -79,74 +95,75 @@ export const BracketView = () => {
   );
 
   return (
-    <div className="flex flex-col h-full bg-canvas/30 text-white">
-      <header className="p-6 border-b border-hairline flex flex-col sm:flex-row sm:items-center sm:justify-between py-4 bg-[#140507]/20 backdrop-blur-md z-10 shrink-0 gap-4">
-        <div>
-          <h1 className="text-2xl font-titular text-white font-black flex items-center gap-2">
-            <Zap className="text-primary w-5 h-5 animate-pulse" />
-            {isHybrid ? '조별리그 및 결승 토너먼트' : '토너먼트 대진표'}
+    <div className="flex flex-col h-full bg-canvas/30 text-white relative">
+      <header className="px-6 py-5 border-b border-hairline flex flex-wrap items-center justify-between bg-[#140507]/40 backdrop-blur-xl z-20 shrink-0 gap-6 sticky top-0">
+        <div className="flex flex-col min-w-[200px]">
+          <h1 className="text-xl font-titular text-white font-black flex items-center gap-2">
+            <Zap className={`text-primary w-5 h-5 ${isShuffling ? 'animate-bounce' : 'animate-pulse'}`} />
+            조별리그 및 토너먼트
           </h1>
-          <p className="text-ink-subtle text-xs">
-            {isHybrid 
-              ? '조별리그를 3개 조로 구성하고, 상위 8개팀이 8강 토너먼트로 연결됩니다.' 
-              : '토너먼트 대형 대진 카드를 클릭하여 챔피언십 경기를 기획하세요.'}
+          <p className="text-ink-subtle text-[11px] font-medium opacity-60">
+            {isHybrid ? '3개 조 예선 및 8강 본선 매칭 시스템' : '싱글 엘리미네이션 정식 토너먼트'}
           </p>
         </div>
+
+        {/* Centered Tabs in Header */}
+        {isHybrid && (
+          <div className="flex-1 flex justify-center order-3 md:order-none w-full md:w-auto">
+            <div className="inline-flex p-1 bg-black/40 backdrop-blur-xl rounded-xl border border-hairline/30 shadow-inner">
+              <button
+                onClick={() => setActiveTab('league')}
+                className={`px-6 py-2 rounded-lg text-xs font-black tracking-tighter transition-all ${
+                  activeTab === 'league' 
+                    ? 'bg-primary text-white shadow-[0_0_20px_rgba(225,29,72,0.3)]' 
+                    : 'text-ink-subtle hover:text-white hover:bg-white/5'
+                }`}
+              >
+                조별 리그 예선
+              </button>
+              <button
+                onClick={() => setActiveTab('tournament')}
+                className={`px-6 py-2 rounded-lg text-xs font-black tracking-tighter transition-all ${
+                  activeTab === 'tournament' 
+                    ? 'bg-primary text-white shadow-[0_0_20px_rgba(225,29,72,0.3)]' 
+                    : 'text-ink-subtle hover:text-white hover:bg-white/5'
+                }`}
+              >
+                8강 본선 토너먼트
+              </button>
+            </div>
+          </div>
+        )}
         
         <div className="flex items-center gap-3">
           <button 
             onClick={handleShuffle}
-            disabled={!canShuffle}
-            className={`flex items-center gap-2 px-4 py-2 rounded-md text-[13px] font-bold transition-all cursor-pointer ${
-              canShuffle 
-                ? 'bg-primary hover:bg-primary-hover text-white shadow-[0_0_15px_rgba(225,29,72,0.25)] border border-primary/30' 
-                : 'bg-surface-2 text-ink-tertiary border border-hairline cursor-not-allowed opacity-40'
+            disabled={!canShuffle || isShuffling}
+            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-[13px] font-black transition-all ${
+              canShuffle && !isShuffling
+                ? 'bg-primary/10 border border-primary/30 text-primary hover:bg-primary hover:text-white shadow-[0_0_20px_rgba(225,29,72,0.1)] active:scale-95' 
+                : 'bg-surface-2 text-ink-tertiary border border-hairline cursor-not-allowed opacity-30'
             }`}
-            title={!canShuffle ? "경기 데이터 및 세트 승패 이력이 있어 섞을 수 없습니다. 대진 초기화를 먼저 실행하세요." : "처음 참가 조 및 팀을 랜덤하게 재분배합니다."}
           >
-            <Shuffle className="w-4 h-4" />
-            {isHybrid ? '대전 섞기' : '대진 섞기'}
+            <Shuffle className={`w-4 h-4 ${isShuffling ? 'animate-spin' : ''}`} />
+            {isShuffling ? '섞는 중...' : '대전 섞기'}
           </button>
 
           <button 
             onClick={() => setShowResetConfirm(true)}
-            className="flex items-center gap-2 px-4 py-2 rounded-md text-[13px] font-bold transition-all cursor-pointer bg-surface-2 border border-hairline/60 hover:bg-surface-3 text-ink hover:text-primary-hover hover:border-primary/50"
+            disabled={isShuffling}
+            className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-[13px] font-black transition-all bg-surface-2 border border-hairline/60 text-ink-subtle hover:bg-surface-3 hover:text-white active:scale-95 disabled:opacity-30"
           >
-            <RotateCcw className="w-4 h-4 text-ink-subtle" />
+            <RotateCcw className="w-4 h-4" />
             초기화
           </button>
         </div>
       </header>
 
-      {isHybrid && (
-        <div className="bg-[#0c0e11]/80 border-b border-hairline/80 px-6 py-2 flex items-center gap-2 shrink-0">
-          <button
-            onClick={() => setActiveTab('league')}
-            className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${
-              activeTab === 'league' 
-                ? 'bg-primary/20 text-primary border border-primary/40' 
-                : 'text-ink-subtle hover:text-white hover:bg-white/5 border border-transparent'
-            }`}
-          >
-            조별 리그 예선 (A, B, C조)
-          </button>
-          <button
-            onClick={() => setActiveTab('tournament')}
-            className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${
-              activeTab === 'tournament' 
-                ? 'bg-primary/20 text-primary border border-primary/40' 
-                : 'text-ink-subtle hover:text-white hover:bg-white/5 border border-transparent'
-            }`}
-          >
-            8강 본선 토너먼트 (Championship)
-          </button>
-        </div>
-      )}
-
       {isHybrid ? (
         activeTab === 'league' ? (
-          // 3 Groups Horizontal Efficient Layout
-          <div className="flex-1 overflow-y-auto p-6 scrollbar-hidden">
+          <div className="flex-1 overflow-y-auto p-6 scrollbar-hidden translate-z-0 will-change-transform">
+            {/* 3 Groups Horizontal Efficient Layout */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start pb-16">
               
               {/* Group A Section */}
@@ -460,8 +477,8 @@ export const BracketView = () => {
             </div>
           </div>
         ) : (
-          // 8강 Championship Knockout Tree Layout (QF -> SF -> GF -> CHAMPION)
-          <div className="flex-1 overflow-auto pt-8 px-8 pb-12 scrollbar-hidden">
+          <div className="flex-1 overflow-auto pt-8 px-8 pb-12 scrollbar-hidden translate-z-0 will-change-transform">
+            {/* 8강 Championship Knockout Tree Layout (QF -> SF -> GF -> CHAMPION) */}
             <div className="glass-panel p-8 rounded-2xl border border-hairline/60 bg-[#0d1013] max-w-[1240px] mx-auto mb-6">
               
               {/* Robust 4-Tier layout (QF -> SF -> GF -> CHAMPION) */}
@@ -479,11 +496,11 @@ export const BracketView = () => {
                     const isClickable = hasBoth && qf.status !== 'completed';
                     
                     return (
-                      <div key={qfId} className="relative flex-1 flex flex-col justify-center py-2">
+                      <div key={qfId} className="relative flex-1 flex flex-col justify-center py-2 translate-z-0">
                         <div className="text-[9px] font-mono text-ink-tertiary mb-1 uppercase">8강 경기 {idx}</div>
                         <div 
                           onClick={() => isClickable && setSelectedMatchId(qfId)}
-                          className={`glass-panel p-3 rounded-xl border border-hairline transition-all flex flex-col gap-2 ${
+                          className={`glass-panel p-3 rounded-xl border border-hairline transition-all flex flex-col gap-2 transform-gpu ${
                             isClickable 
                               ? 'cursor-pointer hover:border-[#f59e0b]/80 hover:shadow-[0_0_12px_rgba(245,158,11,0.15)] active:scale-[0.98]' 
                               : 'opacity-85'
@@ -527,11 +544,11 @@ export const BracketView = () => {
                     const isClickable = hasBoth && sf.status !== 'completed';
                     
                     return (
-                      <div key={sfId} className="relative flex-1 flex flex-col justify-center max-h-[160px]">
+                      <div key={sfId} className="relative flex-1 flex flex-col justify-center max-h-[160px] translate-z-0">
                         <div className="text-[9px] font-mono text-[#a78bfa] mb-1 uppercase">4강 경기 {idx}</div>
                         <div 
                           onClick={() => isClickable && setSelectedMatchId(sfId)}
-                          className={`glass-panel p-3 rounded-xl border border-[#7c3aed]/40 transition-all flex flex-col gap-2 ${
+                          className={`glass-panel p-3 rounded-xl border border-[#7c3aed]/40 transition-all flex flex-col gap-2 transform-gpu ${
                             isClickable 
                               ? 'cursor-pointer hover:border-[#a78bfa]/80 hover:shadow-[0_0_12px_rgba(139,92,246,0.15)] active:scale-[0.98]' 
                               : 'opacity-85'
@@ -575,11 +592,11 @@ export const BracketView = () => {
                     const isClickable = hasBoth && gf.status !== 'completed';
                     
                     return (
-                      <div className="relative flex flex-col justify-center animate-fade-in group">
+                      <div className={`relative flex flex-col justify-center translate-z-0 group ${isShuffling ? '' : 'animate-fade-in'}`}>
                         <div className="absolute left-[-48px] top-1/2 w-[48px] border-b-2 border-hairline/40 pointer-events-none" />
                         <div 
                           onClick={() => isClickable && setSelectedMatchId(gfId)}
-                          className={`glass-panel p-5 rounded-2xl border-2 border-[#f59e0b]/60 bg-gradient-to-br from-[#171109]/40 to-transparent transition-all flex flex-col gap-3 shadow-[0_0_30px_rgba(245,158,11,0.05)] ${
+                          className={`glass-panel p-5 rounded-2xl border-2 border-[#f59e0b]/60 bg-gradient-to-br from-[#171109]/40 to-transparent transition-all flex flex-col gap-3 transform-gpu shadow-[0_0_30px_rgba(245,158,11,0.05)] ${
                             isClickable 
                               ? 'cursor-pointer hover:border-[#f59e0b] hover:shadow-[0_0_35px_rgba(245,158,11,0.25)] active:scale-[0.98]' 
                               : 'opacity-90'
@@ -622,10 +639,10 @@ export const BracketView = () => {
                       const winnerId = gf?.winnerId;
                       if (winnerId) {
                         return (
-                          <div className="flex flex-col items-center animate-bounce-in">
+                          <div className={`flex flex-col items-center translate-z-0 ${isShuffling ? '' : 'animate-bounce-in'}`}>
                             <div className="relative group">
                               <div className="absolute inset-0 bg-primary blur-3xl opacity-20 animate-pulse"></div>
-                              <div className="relative glass-panel bg-gradient-to-b from-[#f59e0b]/20 to-[#1a1c22] border-2 border-[#f59e0b] p-8 rounded-[2.5rem] flex flex-col items-center gap-4 shadow-[0_0_50px_rgba(245,158,11,0.3)]">
+                              <div className="relative glass-panel bg-gradient-to-b from-[#f59e0b]/20 to-[#1a1c22] border-2 border-[#f59e0b] p-8 rounded-[2.5rem] flex flex-col items-center gap-4 transform-gpu shadow-[0_0_50px_rgba(245,158,11,0.3)]">
                                 <div className="bg-gradient-to-tr from-[#f59e0b] to-yellow-200 p-4 rounded-full shadow-lg">
                                   <Medal className="w-10 h-10 text-[#140507]" />
                                 </div>
@@ -662,8 +679,8 @@ export const BracketView = () => {
           </div>
         )
       ) : (
-        // Standard Elegant Tournament Layout
-        <div className="flex-1 overflow-auto p-8 scrollbar-hidden">
+        <div className="flex-1 overflow-auto p-8 scrollbar-hidden translate-z-0 will-change-transform">
+          {/* Standard Elegant Tournament Layout */}
           <div className="flex justify-start items-start min-w-max h-full gap-16 px-4 pb-24">
             {rounds.map((roundMatches, rIdx) => {
               const BASE_HEIGHT = 145; // Comfortable spacing for cards
@@ -697,7 +714,7 @@ export const BracketView = () => {
                         {/* The Match Card */}
                         <div 
                           onClick={() => isClickable && setSelectedMatchId(match.id)}
-                          className={`glass-panel overflow-hidden flex flex-col z-10 transition-all ${
+                          className={`glass-panel overflow-hidden flex flex-col z-10 transition-all transform-gpu translate-z-0 ${
                             match.status === 'in_progress' ? 'active-match match-box' : ''
                           } ${
                             isClickable 

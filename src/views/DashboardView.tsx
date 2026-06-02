@@ -306,7 +306,7 @@ export const DashboardView = () => {
             <div className="w-8 h-8 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center">
               <Flame className="w-4 h-4 text-primary" />
             </div>
-            <span className="text-[10px] font-mono text-primary font-black tracking-tighter">MOST WINS</span>
+            <span className="text-[10px] font-mono text-primary font-black tracking-tighter">최다 승리</span>
           </div>
           <div className="mt-4">
             {topWinPlayer ? (
@@ -330,7 +330,7 @@ export const DashboardView = () => {
             <div className="w-8 h-8 rounded-lg bg-blue-500/10 border border-blue-500/20 flex items-center justify-center">
               <Activity className="w-4 h-4 text-blue-400" />
             </div>
-            <span className="text-[10px] font-mono text-blue-400 font-black tracking-tighter">DEADLY EFFICIENCY</span>
+            <span className="text-[10px] font-mono text-blue-400 font-black tracking-tighter">최고 승률</span>
           </div>
           <div className="mt-4">
             {highestRatePlayer ? (
@@ -356,7 +356,7 @@ export const DashboardView = () => {
             <div className="w-8 h-8 rounded-lg bg-purple-500/10 border border-purple-500/20 flex items-center justify-center">
               <Sparkles className="w-4 h-4 text-purple-400" />
             </div>
-            <span className="text-[10px] font-mono text-purple-400 font-black tracking-tighter">VERSATILITY</span>
+            <span className="text-[10px] font-mono text-purple-400 font-black tracking-tighter">다양한 챔피언</span>
           </div>
           <div className="mt-4">
             {maxCharPlayer && maxCharPlayer.characters.size > 0 ? (
@@ -380,7 +380,7 @@ export const DashboardView = () => {
             <div className="w-8 h-8 rounded-lg bg-orange-400/10 border border-orange-400/20 flex items-center justify-center">
               <HeartCrack className="w-4 h-4 text-orange-400" />
             </div>
-            <span className="text-[10px] font-mono text-orange-400 font-black tracking-tighter">BUS KING (TOP 8)</span>
+            <span className="text-[10px] font-mono text-orange-400 font-black tracking-tighter">버스왕 (8강 극강 가성비)</span>
           </div>
           <div className="mt-4">
             {busKingPlayer ? (
