@@ -227,26 +227,53 @@ export const DashboardView = () => {
         {/* Championship Winner Card */}
         <div className="glass-panel p-6 rounded-2xl border border-hairline/80 bg-gradient-to-br from-[#1c0f12] via-[#0c0f12] to-[#0c0f12] flex flex-col justify-between relative overflow-hidden h-48">
           <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full blur-3xl -mr-10 -mt-10"></div>
-          <div>
-            <div className="flex items-center justify-between mb-4">
-              <span className="px-2 py-0.5 text-[9px] uppercase font-bold tracking-widest bg-primary/20 text-primary border border-primary/30 rounded">Arena Champion</span>
-              <Crown className="w-5 h-5 text-[#f59e0b]" />
-            </div>
-            <p className="text-ink-tertiary text-[10px] mb-1 font-bold uppercase tracking-tighter">최종 우승팀</p>
-            {tournamentWinner ? (
-              <h3 className="text-xl font-titular text-white font-black drop-shadow-md">{tournamentWinner.name}</h3>
-            ) : (
-              <h3 className="text-lg font-titular text-white/40 font-bold">집계 중...</h3>
-            )}
+          
+          {/* Winner Card Fire Particles */}
+          <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden opacity-60">
+            {[...Array(25)].map((_, i) => {
+              const colors = ['bg-primary', 'bg-yellow-300', 'bg-white', 'bg-orange-400'];
+              const color = colors[Math.floor(Math.random() * colors.length)];
+              const size = 0.5 + Math.random() * 1.5;
+              
+              return (
+                <div 
+                  key={i}
+                  className={`absolute rounded-full blur-[0.5px] animate-fire-particle ${color}`}
+                  style={{ 
+                    width: `${size}px`,
+                    height: `${size}px`,
+                    left: `${-5 + Math.random() * 110}%`, 
+                    top: `${50 + Math.random() * 60}%`,
+                    '--duration': `${0.8 + Math.random() * 2.2}s`,
+                    animationDelay: `${Math.random() * 4}s`
+                  } as React.CSSProperties}
+                ></div>
+              );
+            })}
           </div>
-          <div className="mt-4 flex items-center gap-2 text-[11px]">
-            {tournamentWinner ? (
-              <span className="text-emerald-400 font-bold flex items-center gap-1">
-                <Sparkles className="w-3.5 h-3.5" /> 대회를 제패하였습니다
-              </span>
-            ) : (
-              <span className="text-ink-subtle">결승전 결과를 기다리는 중</span>
-            )}
+
+          <div className="relative z-10 h-full flex flex-col justify-between">
+            <div>
+              <div className="flex items-center justify-between mb-4">
+                <span className="px-2 py-0.5 text-[9px] uppercase font-bold tracking-widest bg-primary/20 text-primary border border-primary/30 rounded">Arena Champion</span>
+                <Crown className="w-5 h-5 text-[#f59e0b]" />
+              </div>
+              <p className="text-ink-tertiary text-[10px] mb-1 font-bold uppercase tracking-tighter">최종 우승팀</p>
+              {tournamentWinner ? (
+                <h3 className="text-xl font-titular text-white font-black drop-shadow-md">{tournamentWinner.name}</h3>
+              ) : (
+                <h3 className="text-lg font-titular text-white/40 font-bold">집계 중...</h3>
+              )}
+            </div>
+            <div className="mt-4 flex items-center gap-2 text-[11px]">
+              {tournamentWinner ? (
+                <span className="text-emerald-400 font-bold flex items-center gap-1">
+                  <Sparkles className="w-3.5 h-3.5" /> 대회를 제패하였습니다
+                </span>
+              ) : (
+                <span className="text-ink-subtle">결승전 결과를 기다리는 중</span>
+              )}
+            </div>
           </div>
         </div>
 

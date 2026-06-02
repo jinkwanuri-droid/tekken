@@ -32,6 +32,24 @@
   --text-subhead: 20px;
 }
 
+@keyframes fire-particle {
+  0% { transform: translate(0, 0) scale(1.5); opacity: 0; filter: blur(1px) brightness(2); }
+  15% { opacity: 1; transform: translate(20px, -10px) scale(1.2); }
+  50% { transform: translate(180px, -35px) scale(1); opacity: 0.8; filter: blur(0.5px) brightness(1.5); }
+  100% { transform: translate(400px, -70px) scale(0); opacity: 0; }
+}
+
+@keyframes shimmer {
+  0% { transform: translateX(-100%) skewX(-15deg); }
+  100% { transform: translateX(200%) skewX(-15deg); }
+}
+
+@keyframes animate-flame-flow {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
 @layer utilities {
   .glass-panel {
     @apply bg-surface-2 backdrop-blur-[12px] border border-hairline rounded-lg shadow-none;
@@ -64,6 +82,19 @@
   }
   .match-box {
     @apply border-l-[3px] border-l-primary;
+  }
+  
+  .animate-fire-particle {
+    animation: fire-particle var(--duration, 2s) linear infinite;
+  }
+  
+  .animate-flame-flow {
+    background-size: 200% 200%;
+    animation: animate-flame-flow 8s ease infinite;
+  }
+  
+  .animate-shimmer {
+    animation: shimmer 4s cubic-bezier(0.4, 0, 0.2, 1) infinite;
   }
 }
 

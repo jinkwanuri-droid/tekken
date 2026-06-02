@@ -11,6 +11,7 @@ const formatSetDiff = (diff: number, won: number, lost: number) => {
 export const BracketView = () => {
   const { state, dispatch } = useTournament();
   const [selectedMatchId, setSelectedMatchId] = useState<string | null>(null);
+  const [showShuffleConfirm, setShowShuffleConfirm] = useState(false);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [activeTab, setActiveTab] = useState<'league' | 'tournament'>('league');
   const [isShuffling, setIsShuffling] = useState(false);
@@ -19,6 +20,7 @@ export const BracketView = () => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         setShowResetConfirm(false);
+        setShowShuffleConfirm(false);
       }
     };
     window.addEventListener('keydown', handleKeyDown);
@@ -63,8 +65,7 @@ export const BracketView = () => {
   const handleShuffle = async () => {
     if (!canShuffle || isShuffling) return;
     
-    if (!window.confirm('대전을 바꾸겠습니까?')) return;
-
+    setShowShuffleConfirm(false);
     setIsShuffling(true);
     
     // Perform around 20 "fake" shuffles for animation effect
@@ -76,7 +77,7 @@ export const BracketView = () => {
         dispatch({ type: 'SHUFFLE_BRACKET' });
       }
       // Speed up slightly towards the end
-      const delay = 60 + (i * 2);
+      const delay = 50 + (i * 2);
       await new Promise(resolve => setTimeout(resolve, delay));
     }
     
@@ -137,7 +138,7 @@ export const BracketView = () => {
         
         <div className="flex items-center gap-3">
           <button 
-            onClick={handleShuffle}
+            onClick={() => canShuffle && !isShuffling && setShowShuffleConfirm(true)}
             disabled={!canShuffle || isShuffling}
             className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-[13px] font-black transition-all ${
               canShuffle && !isShuffling
@@ -642,6 +643,31 @@ export const BracketView = () => {
                           <div className={`flex flex-col items-center translate-z-0 ${isShuffling ? '' : 'animate-bounce-in'}`}>
                             <div className="relative group">
                               <div className="absolute inset-0 bg-primary blur-3xl opacity-20 animate-pulse"></div>
+                              
+                              {/* Arena Champion Fire Particles */}
+                              <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden opacity-70">
+                                {[...Array(30)].map((_, i) => {
+                                  const colors = ['bg-primary', 'bg-yellow-300', 'bg-white', 'bg-orange-400'];
+                                  const color = colors[Math.floor(Math.random() * colors.length)];
+                                  const size = 0.5 + Math.random() * 2;
+                                  
+                                  return (
+                                    <div 
+                                      key={i}
+                                      className={`absolute rounded-full blur-[0.5px] animate-fire-particle ${color}`}
+                                      style={{ 
+                                        width: `${size}px`,
+                                        height: `${size}px`,
+                                        left: `${-5 + Math.random() * 110}%`, 
+                                        top: `${40 + Math.random() * 80}%`,
+                                        '--duration': `${0.8 + Math.random() * 2}s`,
+                                        animationDelay: `${Math.random() * 4}s`
+                                      } as React.CSSProperties}
+                                    ></div>
+                                  );
+                                })}
+                              </div>
+
                               <div className="relative glass-panel bg-gradient-to-b from-[#f59e0b]/20 to-[#1a1c22] border-2 border-[#f59e0b] p-8 rounded-[2.5rem] flex flex-col items-center gap-4 transform-gpu shadow-[0_0_50px_rgba(245,158,11,0.3)]">
                                 <div className="bg-gradient-to-tr from-[#f59e0b] to-yellow-200 p-4 rounded-full shadow-lg">
                                   <Medal className="w-10 h-10 text-[#140507]" />
@@ -816,6 +842,46 @@ export const BracketView = () => {
           matchId={selectedMatchId} 
           onClose={() => setSelectedMatchId(null)} 
         />
+      )}
+
+      {/* Shuffle confirmation modal */}
+      {showShuffleConfirm && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+          <div 
+            className="absolute inset-0 bg-black/80 backdrop-blur-sm"
+            onClick={() => setShowShuffleConfirm(false)}
+          />
+          <div 
+            className="w-full max-w-md bg-[#0c0f12] border border-hairline p-6 rounded-xl shadow-2xl flex flex-col cursor-default z-10"
+          >
+            <div className="flex items-center gap-3 text-primary mb-3">
+              <Shuffle className="w-6 h-6 text-primary" />
+              <h3 className="text-lg font-titular text-white font-bold">대진 무작위 섞기</h3>
+            </div>
+            
+            <p className="text-ink-subtle text-xs leading-relaxed mb-6">
+              현재 참여 팀 목록과 조를 무작위로 다시 섞으시겠습니까?<br />
+              <span className="text-primary font-semibold">대진을 섞으면 진행되지 않은 현재 대진 정보가 변경됩니다.</span>
+            </p>
+            
+            <div className="flex items-center justify-end gap-3">
+              <button 
+                type="button"
+                onClick={() => setShowShuffleConfirm(false)}
+                className="px-4 py-2 rounded text-xs font-semibold border border-hairline/60 hover:bg-surface-1 transition-all"
+              >
+                취소
+              </button>
+              <button 
+                type="button"
+                onClick={handleShuffle}
+                className="px-4 py-2 rounded text-xs font-semibold bg-primary hover:bg-primary-hover text-white shadow-[0_0_15px_rgba(225,29,72,0.25)] transition-all"
+              >
+                대전 섞기 시작
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* Reset confirmation modal */}

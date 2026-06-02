@@ -121,7 +121,7 @@ export const TeamsView = () => {
 
 
         {/* Teams List Area */}
-        <div className="flex items-center gap-4 mb-6">
+        <div className="flex items-center justify-between gap-4 mb-6">
           <h2 className="text-xl font-titular text-ink">팀명 및 참가자 편집</h2>
           <button 
             onClick={() => setIsEditMode(!isEditMode)}
@@ -140,6 +140,21 @@ export const TeamsView = () => {
         </div>
 
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
+          {isEditMode && (
+            <button 
+              onClick={handleAddTeam}
+              className="group border-2 border-dashed border-hairline rounded-xl p-8 flex flex-col items-center justify-center gap-4 text-ink-tertiary hover:border-primary hover:text-primary transition-all bg-primary/5 hover:bg-primary/10 h-full min-h-[220px]"
+            >
+              <div className="bg-primary/10 p-4 rounded-full group-hover:bg-primary/20 transition-colors">
+                <PlusCircle className="w-10 h-10 group-hover:scale-110 transition-transform" />
+              </div>
+              <div className="flex flex-col items-center gap-1">
+                <div className="text-sm font-bold">새로운 팀 추가하기</div>
+                <div className="text-[10px] opacity-60">추가 시 대진표가 초기화됩니다</div>
+              </div>
+            </button>
+          )}
+
           {state.teams.map((team, idx) => (
              <TeamEditor 
                key={team.id} 
@@ -150,16 +165,6 @@ export const TeamsView = () => {
                onDelete={() => handleDeleteTeam(team.id, team.name)}
              />
           ))}
-          
-          {isEditMode && (
-            <button 
-              onClick={handleAddTeam}
-              className="group border-2 border-dashed border-hairline rounded-xl p-8 flex flex-col items-center justify-center gap-3 text-ink-tertiary hover:border-primary/50 hover:text-primary transition-all bg-surface-1/30"
-            >
-              <PlusCircle className="w-10 h-10 group-hover:scale-110 transition-transform" />
-              <div className="text-sm font-bold">새로운 팀 추가하기</div>
-            </button>
-          )}
         </div>
 
       </div>
