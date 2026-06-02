@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { ShieldCheck, Lock, ArrowRight, Flame } from 'lucide-react';
 
 interface LoginViewProps {
@@ -9,9 +9,31 @@ export const LoginView = ({ onLogin }: LoginViewProps) => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState(false);
 
+  // Generate fire particles once to prevent re-creation on render (keystrokes)
+  const particles = useMemo(() => {
+    const colors = ['bg-primary', 'bg-yellow-400', 'bg-white', 'bg-orange-500'];
+    return [...Array(90)].map((_, i) => {
+      const color = colors[Math.floor(Math.random() * colors.length)];
+      const size = 0.8 + Math.random() * 2.5;
+      const startX = -20 + Math.random() * 40;
+      const top = 45 + Math.random() * 55;
+      const duration = 2 + Math.random() * 4;
+      const delay = Math.random() * 10;
+      return {
+        id: i,
+        color,
+        size,
+        startX,
+        top,
+        duration: `${duration}s`,
+        delay: `${delay}s`
+      };
+    });
+  }, []);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const correctPassword = import.meta.env.VITE_APP_PASSWORD || '@gamst12@';
+    const correctPassword = import.meta.env.VITE_APP_PASSWORD || '@Gamst321!';
     
     if (password === correctPassword) {
       onLogin();
@@ -31,28 +53,20 @@ export const LoginView = ({ onLogin }: LoginViewProps) => {
         
         {/* Fire Particles for login background - Enhanced density and sweep from left */}
         <div className="absolute inset-0 overflow-hidden opacity-70">
-          {[...Array(90)].map((_, i) => {
-            const colors = ['bg-primary', 'bg-yellow-400', 'bg-white', 'bg-orange-500'];
-            const color = colors[Math.floor(Math.random() * colors.length)];
-            const size = 0.8 + Math.random() * 2.5;
-            // Bias starting positions strictly to the far left for a sweep effect
-            const startX = -20 + Math.random() * 40; 
-            
-            return (
-              <div 
-                key={i}
-                className={`absolute rounded-full blur-[0.3px] animate-fire-particle ${color}`}
-                style={{ 
-                  width: `${size}px`,
-                  height: `${size}px`,
-                  left: `${startX}%`, 
-                  top: `${45 + Math.random() * 55}%`,
-                  '--duration': `${2 + Math.random() * 4}s`,
-                  animationDelay: `${Math.random() * 10}s`
-                } as React.CSSProperties}
-              ></div>
-            );
-          })}
+          {particles.map((p) => (
+            <div 
+              key={p.id}
+              className={`absolute rounded-full blur-[0.3px] animate-fire-particle ${p.color}`}
+              style={{ 
+                width: `${p.size}px`,
+                height: `${p.size}px`,
+                left: `${p.startX}%`, 
+                top: `${p.top}%`,
+                '--duration': p.duration,
+                animationDelay: p.delay
+              } as React.CSSProperties}
+            ></div>
+          ))}
         </div>
       </div>
       
