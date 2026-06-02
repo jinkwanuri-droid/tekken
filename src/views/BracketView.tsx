@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useTournament, computeGroupStandings } from '../store';
-import { Shuffle, RotateCcw, AlertTriangle, Medal, Play, CheckCircle2, Award, Zap } from 'lucide-react';
+import { Shuffle, RotateCcw, AlertTriangle, Medal, Play, CheckCircle2, Award, Zap, Crown } from 'lucide-react';
 import { MatchModal } from '../components/MatchModal';
 
 const formatSetDiff = (diff: number, won: number, lost: number) => {
@@ -8,13 +8,32 @@ const formatSetDiff = (diff: number, won: number, lost: number) => {
   return `${sign}${diff}(${won}/${lost})`;
 };
 
-export const BracketView = () => {
+export const BracketView = ({ isAdmin }: { isAdmin: boolean }) => {
   const { state, dispatch } = useTournament();
   const [selectedMatchId, setSelectedMatchId] = useState<string | null>(null);
   const [showShuffleConfirm, setShowShuffleConfirm] = useState(false);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [activeTab, setActiveTab] = useState<'league' | 'tournament'>('league');
   const [isShuffling, setIsShuffling] = useState(false);
+
+  // Group standings should be memoized to avoid expensive re-computation
+  const groupAStandings = useMemo(() => computeGroupStandings(state.teams, state.matches, 'A'), [state.teams, state.matches]);
+  const groupBStandings = useMemo(() => computeGroupStandings(state.teams, state.matches, 'B'), [state.teams, state.matches]);
+  const groupCStandings = useMemo(() => computeGroupStandings(state.teams, state.matches, 'C'), [state.teams, state.matches]);
+
+  // Champion Arena particles should be memoized (longer duration makes them float extremely slowly)
+  const championParticles = useMemo(() => {
+    const colors = ['bg-primary', 'bg-yellow-300', 'bg-white', 'bg-orange-400'];
+    return [...Array(60)].map((_, i) => ({
+      id: i,
+      color: colors[Math.floor(Math.random() * colors.length)],
+      size: 0.5 + Math.random() * 2.5,
+      left: `${-20 + Math.random() * 140}%`,
+      top: `${30 + Math.random() * 90}%`,
+      duration: `${2.2 + Math.random() * 3.8}s`,
+      delay: `${Math.random() * 5}s`
+    }));
+  }, []);
 
   React.useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -136,29 +155,36 @@ export const BracketView = () => {
           </div>
         )}
         
-        <div className="flex items-center gap-3">
-          <button 
-            onClick={() => canShuffle && !isShuffling && setShowShuffleConfirm(true)}
-            disabled={!canShuffle || isShuffling}
-            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-[13px] font-black transition-all ${
-              canShuffle && !isShuffling
-                ? 'bg-primary/10 border border-primary/30 text-primary hover:bg-primary hover:text-white shadow-[0_0_20px_rgba(225,29,72,0.1)] active:scale-95' 
-                : 'bg-surface-2 text-ink-tertiary border border-hairline cursor-not-allowed opacity-30'
-            }`}
-          >
-            <Shuffle className={`w-4 h-4 ${isShuffling ? 'animate-spin' : ''}`} />
-            {isShuffling ? '섞는 중...' : '대전 섞기'}
-          </button>
+        {isAdmin ? (
+          <div className="flex items-center gap-3">
+            <button 
+              onClick={() => canShuffle && !isShuffling && setShowShuffleConfirm(true)}
+              disabled={!canShuffle || isShuffling}
+              className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-[13px] font-black transition-all ${
+                canShuffle && !isShuffling
+                  ? 'bg-primary/10 border border-primary/30 text-primary hover:bg-primary hover:text-white shadow-[0_0_20px_rgba(225,29,72,0.1)] active:scale-95' 
+                  : 'bg-surface-2 text-ink-tertiary border border-hairline cursor-not-allowed opacity-30'
+              }`}
+            >
+              <Shuffle className={`w-4 h-4 ${isShuffling ? 'animate-spin' : ''}`} />
+              {isShuffling ? '섞는 중...' : '대전 섞기'}
+            </button>
 
-          <button 
-            onClick={() => setShowResetConfirm(true)}
-            disabled={isShuffling}
-            className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-[13px] font-black transition-all bg-surface-2 border border-hairline/60 text-ink-subtle hover:bg-surface-3 hover:text-white active:scale-95 disabled:opacity-30"
-          >
-            <RotateCcw className="w-4 h-4" />
-            초기화
-          </button>
-        </div>
+            <button 
+              onClick={() => setShowResetConfirm(true)}
+              disabled={isShuffling}
+              className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-[13px] font-black transition-all bg-surface-2 border border-hairline/60 text-ink-subtle hover:bg-surface-3 hover:text-white active:scale-95 disabled:opacity-30"
+            >
+              <RotateCcw className="w-4 h-4" />
+              초기화
+            </button>
+          </div>
+        ) : (
+          <div className="flex items-center gap-2 px-4 py-2 border border-[#e11d48]/20 bg-[#120305]/60 rounded-xl text-xs font-semibold text-ink-subtle select-none">
+            <svg className="w-3.5 h-3.5 text-primary animate-pulse" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+            <span>실시간 관전 모드</span>
+          </div>
+        )}
       </header>
 
       {isHybrid ? (
@@ -192,7 +218,7 @@ export const BracketView = () => {
                       </tr>
                     </thead>
                     <tbody>
-                      {computeGroupStandings(state.teams, state.matches, 'A').map((std, idx) => {
+                      {groupAStandings.map((std, idx) => {
                         const isAdvance = idx < 3;
                         return (
                           <tr 
@@ -231,7 +257,7 @@ export const BracketView = () => {
                 <div className="space-y-3">
                   {state.matches.filter(m => m.isGroupStage && m.groupName === 'A').map((match) => {
                     const isCompleted = match.status === 'completed';
-                    const isClickable = match.status !== 'completed';
+                    const isClickable = true;
                     
                     return (
                       <div 
@@ -295,7 +321,7 @@ export const BracketView = () => {
                       </tr>
                     </thead>
                     <tbody>
-                      {computeGroupStandings(state.teams, state.matches, 'B').map((std, idx) => {
+                      {groupBStandings.map((std, idx) => {
                         const isAdvance = idx < 3;
                         return (
                           <tr 
@@ -334,7 +360,7 @@ export const BracketView = () => {
                 <div className="space-y-3">
                   {state.matches.filter(m => m.isGroupStage && m.groupName === 'B').map((match) => {
                     const isCompleted = match.status === 'completed';
-                    const isClickable = match.status !== 'completed';
+                    const isClickable = true;
                     
                     return (
                       <div 
@@ -398,7 +424,7 @@ export const BracketView = () => {
                       </tr>
                     </thead>
                     <tbody>
-                      {computeGroupStandings(state.teams, state.matches, 'C').map((std, idx) => {
+                      {groupCStandings.map((std, idx) => {
                         const isAdvance = idx < 2;
                         return (
                           <tr 
@@ -436,7 +462,7 @@ export const BracketView = () => {
                 <div className="space-y-3">
                   {state.matches.filter(m => m.isGroupStage && m.groupName === 'C').map((match) => {
                     const isCompleted = match.status === 'completed';
-                    const isClickable = match.status !== 'completed';
+                    const isClickable = true;
                     
                     return (
                       <div 
@@ -494,7 +520,7 @@ export const BracketView = () => {
                     const qfId = `QF_${idx}`;
                     const qf = state.matches.find(m => m.id === qfId)!;
                     const hasBoth = !!qf.team1Id && !!qf.team2Id;
-                    const isClickable = hasBoth && qf.status !== 'completed';
+                    const isClickable = hasBoth;
                     
                     return (
                       <div key={qfId} className="relative flex-1 flex flex-col justify-center py-2 translate-z-0">
@@ -542,7 +568,7 @@ export const BracketView = () => {
                     const sfId = `SF_${idx}`;
                     const sf = state.matches.find(m => m.id === sfId)!;
                     const hasBoth = !!sf.team1Id && !!sf.team2Id;
-                    const isClickable = hasBoth && sf.status !== 'completed';
+                    const isClickable = hasBoth;
                     
                     return (
                       <div key={sfId} className="relative flex-1 flex flex-col justify-center max-h-[160px] translate-z-0">
@@ -590,7 +616,7 @@ export const BracketView = () => {
                     const gfId = 'GF_1';
                     const gf = state.matches.find(m => m.id === gfId)!;
                     const hasBoth = !!gf.team1Id && !!gf.team2Id;
-                    const isClickable = hasBoth && gf.status !== 'completed';
+                    const isClickable = hasBoth;
                     
                     return (
                       <div className={`relative flex flex-col justify-center translate-z-0 group ${isShuffling ? '' : 'animate-fade-in'}`}>
@@ -638,61 +664,54 @@ export const BracketView = () => {
                     {(() => {
                       const gf = state.matches.find(m => m.id === 'GF_1')!;
                       const winnerId = gf?.winnerId;
-                      if (winnerId) {
-                        return (
-                          <div className={`flex flex-col items-center translate-z-0 ${isShuffling ? '' : 'animate-bounce-in'}`}>
-                            <div className="relative group">
-                              <div className="absolute inset-0 bg-primary blur-3xl opacity-20 animate-pulse"></div>
-                              
-                              {/* Arena Champion Fire Particles - Higher density and better overflow handling */}
-                              <div className="absolute -inset-10 z-0 pointer-events-none overflow-hidden opacity-90">
-                                {[...Array(60)].map((_, i) => {
-                                  const colors = ['bg-primary', 'bg-yellow-300', 'bg-white', 'bg-orange-400'];
-                                  const color = colors[Math.floor(Math.random() * colors.length)];
-                                  const size = 0.5 + Math.random() * 2.5;
-                                  
-                                  return (
-                                    <div 
-                                      key={i}
-                                      className={`absolute rounded-full blur-[0.6px] animate-fire-particle ${color}`}
-                                      style={{ 
-                                        width: `${size}px`,
-                                        height: `${size}px`,
-                                        left: `${-20 + Math.random() * 140}%`, 
-                                        top: `${30 + Math.random() * 90}%`,
-                                        '--duration': `${0.6 + Math.random() * 2}s`,
-                                        animationDelay: `${Math.random() * 5}s`
-                                      } as React.CSSProperties}
-                                    ></div>
-                                  );
-                                })}
-                              </div>
+                      return (
+                        <div className={`flex flex-col items-center translate-z-0 ${isShuffling ? '' : 'animate-bounce-in'}`}>
+                          <div className="relative group">
+                            <div className="absolute inset-0 bg-primary blur-3xl opacity-20 animate-pulse"></div>
+                            
+                            {/* Arena Champion Fire Particles - Higher density and better overflow handling */}
+                            <div className="absolute -inset-10 z-0 pointer-events-none overflow-hidden opacity-90">
+                              {championParticles.map((p) => (
+                                <div 
+                                  key={p.id}
+                                  className={`absolute rounded-full blur-[0.6px] animate-fire-particle ${p.color}`}
+                                  style={{ 
+                                    width: `${p.size}px`,
+                                    height: `${p.size}px`,
+                                    left: p.left, 
+                                    top: p.top,
+                                    '--duration': p.duration,
+                                    animationDelay: p.delay
+                                  } as React.CSSProperties}
+                                ></div>
+                              ))}
+                            </div>
 
-                              <div className="relative glass-panel bg-gradient-to-b from-[#f59e0b]/20 to-[#1a1c22] border-2 border-[#f59e0b] p-8 rounded-[2.5rem] flex flex-col items-center gap-4 transform-gpu shadow-[0_0_50px_rgba(245,158,11,0.3)]">
+                            <div className={`relative glass-panel bg-gradient-to-b ${winnerId ? 'from-[#f59e0b]/15 to-[#1c1404]' : 'from-[#e11d48]/10 to-[#120407]'} border-2 ${winnerId ? 'border-[#f59e0b] shadow-[0_0_50px_rgba(245,158,11,0.25)]' : 'border-primary/50 shadow-[0_0_35px_rgba(225,29,72,0.2)]'} p-8 rounded-[2.5rem] flex flex-col items-center gap-4 transform-gpu transition-all duration-300`}>
+                              {winnerId ? (
                                 <div className="bg-gradient-to-tr from-[#f59e0b] to-yellow-200 p-4 rounded-full shadow-lg">
                                   <Medal className="w-10 h-10 text-[#140507]" />
                                 </div>
-                                <div className="text-center">
-                                  <div className="text-[10px] font-black text-primary tracking-widest uppercase mb-1">CHAMPION</div>
-                                  <div className="text-2xl font-titular font-extrabold text-[#f59e0b] whitespace-nowrap drop-shadow-lg">
-                                    {getTeamName(winnerId)}
-                                  </div>
+                              ) : (
+                                <div className="bg-gradient-to-tr from-primary/30 to-rose-400 p-4 rounded-full shadow-lg border border-primary/20 relative animate-pulse">
+                                  <Crown className="w-10 h-10 text-white" />
+                                </div>
+                              )}
+                              
+                              <div className="text-center min-w-[160px]">
+                                <div className="text-[10px] font-black text-primary tracking-widest uppercase mb-1">
+                                  {winnerId ? 'CHAMPION' : 'CHAMPIONSHIP'}
+                                </div>
+                                <div className="text-xl font-titular font-extrabold text-white whitespace-nowrap drop-shadow-lg">
+                                  {winnerId ? getTeamName(winnerId) : '최종 우승팀 결정 중'}
                                 </div>
                               </div>
                             </div>
-                            <div className="mt-8 flex gap-1">
-                              {[1, 2, 3].map(i => (
-                                <div key={i} className="w-1 h-8 bg-gradient-to-b from-[#f59e0b]/40 to-transparent rounded-full"></div>
-                              ))}
-                            </div>
                           </div>
-                        );
-                      }
-                      return (
-                        <div className="opacity-20 flex flex-col items-center gap-4 grayscale">
-                          <div className="glass-panel border-2 border-hairline p-8 rounded-[2.5rem] flex flex-col items-center">
-                             <Medal className="w-12 h-12 text-ink-tertiary mb-3" />
-                             <span className="text-xs font-bold text-ink-tertiary uppercase tracking-tighter">아레나 대기 중</span>
+                          <div className="mt-8 flex gap-1">
+                            {[1, 2, 3].map(i => (
+                              <div key={i} className={`w-1 h-8 bg-gradient-to-b ${winnerId ? 'from-[#f59e0b]/40' : 'from-primary/40'} to-transparent rounded-full`}></div>
+                            ))}
                           </div>
                         </div>
                       );
@@ -722,7 +741,7 @@ export const BracketView = () => {
                   
                   {sortedMatches.map((match, mIdx) => {
                     const hasBothTeams = !!match.team1Id && !!match.team2Id;
-                    const isClickable = hasBothTeams && match.status !== 'completed';
+                    const isClickable = hasBothTeams;
                     const isCompleted = match.status === 'completed';
 
                     return (
@@ -841,6 +860,7 @@ export const BracketView = () => {
         <MatchModal 
           matchId={selectedMatchId} 
           onClose={() => setSelectedMatchId(null)} 
+          isAdmin={isAdmin}
         />
       )}
 

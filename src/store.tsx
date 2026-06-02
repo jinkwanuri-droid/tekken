@@ -65,10 +65,22 @@ export const computeGroupStandings = (teams: Team[], matches: MatchItem[], group
     };
   });
 
-  // Sort: Matches Won -> Set Diff -> Sets Won -> Alphabetical
+  // Sort: Matches Won -> Set Diff (득실차) -> Head-to-Head (승자승) -> Sets Won -> Alphabetical
   standings.sort((a, b) => {
     if (b.won !== a.won) return b.won - a.won;
     if (b.setDiff !== a.setDiff) return b.setDiff - a.setDiff;
+    
+    // 승자승 법칙 (Head-to-head)
+    const h2hMatch = groupMatchItems.find(m => 
+      m.status === 'completed' && 
+      ((m.team1Id === a.teamId && m.team2Id === b.teamId) || 
+       (m.team1Id === b.teamId && m.team2Id === a.teamId))
+    );
+    if (h2hMatch && h2hMatch.winnerId) {
+      if (h2hMatch.winnerId === b.teamId) return 1;
+      if (h2hMatch.winnerId === a.teamId) return -1;
+    }
+
     if (b.setsWon !== a.setsWon) return b.setsWon - a.setsWon;
     return a.teamName.localeCompare(b.teamName);
   });
@@ -875,6 +887,11 @@ export const TournamentProvider = ({ children }: { children: ReactNode }) => {
     } catch (e) {
       console.warn("localStorage save failed:", e);
     }
+
+    // ONLY administrators can push changes to server! Spectators only sync from server.
+    const expiresAt = typeof window !== 'undefined' ? window.localStorage.getItem('auth_expires_at') : null;
+    const isAdminUser = expiresAt && Date.now() < parseInt(expiresAt);
+    if (!isAdminUser) return;
 
     // Only push to server if we have successfully synced from it at least once (to avoid overwriting with defaults)
     if (!hasSyncedRef.current) return;

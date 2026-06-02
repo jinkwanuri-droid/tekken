@@ -59,9 +59,9 @@ const CharacterSelect = ({ value, onChange, placeholder, disabled }: { value: st
                 key={char}
                 type="button"
                 onClick={() => {
-                  onChange(char);
-                  setSearch(char);
-                  setIsOpen(false);
+                   onChange(char);
+                   setSearch(char);
+                   setIsOpen(false);
                 }}
                 className="w-full text-left px-3 py-1.5 text-xs text-ink hover:bg-primary/20 hover:text-white transition-all border-b border-hairline/10 block"
               >
@@ -80,9 +80,10 @@ const CharacterSelect = ({ value, onChange, placeholder, disabled }: { value: st
 interface MatchModalProps {
   matchId: string;
   onClose: () => void;
+  isAdmin: boolean;
 }
 
-export const MatchModal = ({ matchId, onClose }: MatchModalProps) => {
+export const MatchModal = ({ matchId, onClose, isAdmin }: MatchModalProps) => {
   const { state, dispatch } = useTournament();
   
   const activeMatch = state.matches.find(m => m.id === matchId);
@@ -133,9 +134,32 @@ export const MatchModal = ({ matchId, onClose }: MatchModalProps) => {
     onClose();
   };
 
-  // Determine round display name
-  const isFinal = activeMatch.nextMatchId === null;
-  const roundName = isFinal ? '최종 결승전 (Grand Final)' : `Round ${activeMatch.round + 1} - Match ${activeMatch.matchIndex + 1}`;
+  // Determine round display name based on ID patterns and match properties
+  const getRoundDisplay = () => {
+    if (activeMatch.isGroupStage) {
+      const gName = activeMatch.groupName || 'A';
+      const mIdx = activeMatch.id.includes('_') ? activeMatch.id.substring(activeMatch.id.lastIndexOf('_') + 1) : (activeMatch.matchIndex + 1);
+      return `조별리그 ${gName}조 - 경기 ${mIdx}`;
+    }
+    
+    if (activeMatch.id.startsWith('QF_') || (activeMatch.round === 0 && !activeMatch.isGroupStage)) {
+      const qfNum = activeMatch.id.includes('_') ? activeMatch.id.substring(activeMatch.id.lastIndexOf('_') + 1) : (activeMatch.matchIndex + 1);
+      return `준준결승 (8강 토너먼트) - 경기 ${qfNum}`;
+    }
+    
+    if (activeMatch.id.startsWith('SF_') || (activeMatch.round === 1 && !activeMatch.isGroupStage)) {
+      const sfNum = activeMatch.id.includes('_') ? activeMatch.id.substring(activeMatch.id.lastIndexOf('_') + 1) : (activeMatch.matchIndex + 1);
+      return `준결승전 (4강 토너먼트) - 경기 ${sfNum}`;
+    }
+    
+    if (activeMatch.id.startsWith('GF_') || activeMatch.id === 'GF_1' || activeMatch.nextMatchId === null) {
+      return '그랜드 파이널 (결승전)';
+    }
+
+    return `${activeMatch.round + 1}라운드 - 경기 ${activeMatch.matchIndex + 1}`;
+  };
+
+  const roundName = getRoundDisplay();
 
   return (
     <div 
@@ -167,28 +191,28 @@ export const MatchModal = ({ matchId, onClose }: MatchModalProps) => {
              <div className="absolute inset-x-0 bottom-0 h-[2px] bg-gradient-to-r from-transparent via-primary/50 to-transparent"></div>
              {/* Team 1 View */}
              <div className="flex-1 text-center">
-               <h2 className="text-xl md:text-2xl font-titular text-white mb-1">{team1.name}</h2>
-               <p className="text-4xl md:text-5xl font-mono text-white text-shadow-lg font-bold">{activeMatch.team1Score}</p>
-               {activeMatch.team1Score >= currentSetsToWin && (
-                 <div className="mt-1 text-primary font-bold tracking-widest text-xs flex items-center justify-center gap-1">
-                   <Trophy className="w-3.5 h-3.5 text-yellow-500 animate-pulse"/> WINS MATCH
-                 </div>
-               )}
+                <h2 className="text-xl md:text-2xl font-titular text-white mb-1">{team1.name}</h2>
+                <p className="text-4xl md:text-5xl font-mono text-white text-shadow-lg font-bold">{activeMatch.team1Score}</p>
+                {activeMatch.team1Score >= currentSetsToWin && (
+                  <div className="mt-1 text-primary font-bold tracking-widest text-xs flex items-center justify-center gap-1">
+                    <Trophy className="w-3.5 h-3.5 text-yellow-500 animate-pulse"/> WINS MATCH
+                  </div>
+                )}
              </div>
 
              <div className="px-4 py-1.5 bg-[#1a0507] rounded-full border border-primary/30 opacity-90 backdrop-blur-md">
-               <span className="text-primary font-bold tracking-widest text-xs uppercase">{currentSetsToWin === 3 ? "BO5" : "BO7"}</span>
+                <span className="text-primary font-bold tracking-widest text-xs uppercase">{currentSetsToWin === 3 ? "BO5" : "BO7"}</span>
              </div>
 
              {/* Team 2 View */}
              <div className="flex-1 text-center">
-               <h2 className="text-xl md:text-2xl font-titular text-white mb-1">{team2.name}</h2>
-               <p className="text-4xl md:text-5xl font-mono text-white text-shadow-lg font-bold">{activeMatch.team2Score}</p>
-               {activeMatch.team2Score >= currentSetsToWin && (
-                 <div className="mt-1 text-primary font-bold tracking-widest text-xs flex items-center justify-center gap-1">
-                   <Trophy className="w-3.5 h-3.5 text-yellow-500 animate-pulse"/> WINS MATCH
-                 </div>
-               )}
+                <h2 className="text-xl md:text-2xl font-titular text-white mb-1">{team2.name}</h2>
+                <p className="text-4xl md:text-5xl font-mono text-white text-shadow-lg font-bold">{activeMatch.team2Score}</p>
+                {activeMatch.team2Score >= currentSetsToWin && (
+                  <div className="mt-1 text-primary font-bold tracking-widest text-xs flex items-center justify-center gap-1">
+                    <Trophy className="w-3.5 h-3.5 text-yellow-500 animate-pulse"/> WINS MATCH
+                  </div>
+                )}
              </div>
           </div>
 
@@ -240,6 +264,7 @@ export const MatchModal = ({ matchId, onClose }: MatchModalProps) => {
                   prevSet={prevSet}
                   onSubmitResult={handleSubmitResult}
                   onResetSet={handleResetSet}
+                  isAdmin={isAdmin}
                 />
                );
             })}
@@ -252,36 +277,90 @@ export const MatchModal = ({ matchId, onClose }: MatchModalProps) => {
 
 // Extracted SetRow Component (Supercompact 1-Line Form)
 const SetRow = ({ 
-  set, setIndex, team1, team2, playedByTeam1, playedByTeam2, isDeciderSet, isLocked, isCurrent, matchType, prevSet, onSubmitResult, onResetSet
+  set, setIndex, team1, team2, playedByTeam1, playedByTeam2, isDeciderSet, isLocked, isCurrent, matchType, prevSet, onSubmitResult, onResetSet, isAdmin
 }: any) => {
   const [t1Player, setT1Player] = useState<string>(set.team1PlayerId || '');
   const [t2Player, setT2Player] = useState<string>(set.team2PlayerId || '');
   const [t1Char, setT1Char] = useState<string>(set.team1Character || '');
   const [t2Char, setT2Char] = useState<string>(set.team2Character || '');
 
+  // Track the actual property values of our set props that we last used to populate local state.
+  // This allows us to ignore background synchronization updates (polling) that do not actually change
+  // the data in our current set or its previous dependent set.
+  const lastPropsRef = React.useRef({
+    id: set.id,
+    team1PlayerId: set.team1PlayerId || '',
+    team2PlayerId: set.team2PlayerId || '',
+    team1Character: set.team1Character || '',
+    team2Character: set.team2Character || '',
+    isCurrent,
+    prevSetWinnerId: prevSet?.winnerTeamId || null,
+    prevSetT1Player: prevSet?.team1PlayerId || null,
+    prevSetT2Player: prevSet?.team2PlayerId || null,
+  });
+
   React.useEffect(() => {
-    let defaultT1 = set.team1PlayerId || '';
-    let defaultT2 = set.team2PlayerId || '';
-    let defaultT1Char = set.team1Character || '';
-    let defaultT2Char = set.team2Character || '';
-    
-    // Auto-select winner if winners mode and no player is selected yet
-    if (isCurrent && matchType === 'winners' && prevSet && prevSet.winnerTeamId) {
-      if (prevSet.winnerTeamId === team1.id && !defaultT1) {
-        defaultT1 = prevSet.team1PlayerId || '';
-        defaultT1Char = prevSet.team1Character || '';
+    const isIdChanged = lastPropsRef.current.id !== set.id;
+    const isT1PChanged = lastPropsRef.current.team1PlayerId !== (set.team1PlayerId || '');
+    const isT2PChanged = lastPropsRef.current.team2PlayerId !== (set.team2PlayerId || '');
+    const isT1CChanged = lastPropsRef.current.team1Character !== (set.team1Character || '');
+    const isT2CChanged = lastPropsRef.current.team2Character !== (set.team2Character || '');
+    const isCurrentChanged = lastPropsRef.current.isCurrent !== isCurrent;
+    const isPrevWinnerChanged = lastPropsRef.current.prevSetWinnerId !== (prevSet?.winnerTeamId || null);
+    const isPrevT1Changed = lastPropsRef.current.prevSetT1Player !== (prevSet?.team1PlayerId || null);
+    const isPrevT2Changed = lastPropsRef.current.prevSetT2Player !== (prevSet?.team2PlayerId || null);
+
+    if (
+      isIdChanged || 
+      isT1PChanged || 
+      isT2PChanged || 
+      isT1CChanged || 
+      isT2CChanged || 
+      isCurrentChanged || 
+      isPrevWinnerChanged || 
+      isPrevT1Changed || 
+      isPrevT2Changed
+    ) {
+      if (isIdChanged) {
+        setT1Player(set.team1PlayerId || '');
+        setT2Player(set.team2PlayerId || '');
+        setT1Char(set.team1Character || '');
+        setT2Char(set.team2Character || '');
+      } else {
+        // Only update local input if server genuinely pushed a completed/assigned value.
+        // This isolates transient client state modifications from blank resets.
+        if (set.team1PlayerId) setT1Player(set.team1PlayerId);
+        if (set.team2PlayerId) setT2Player(set.team2PlayerId);
+        if (set.team1Character) setT1Char(set.team1Character);
+        if (set.team2Character) setT2Char(set.team2Character);
       }
-      if (prevSet.winnerTeamId === team2.id && !defaultT2) {
-        defaultT2 = prevSet.team2PlayerId || '';
-        defaultT2Char = prevSet.team2Character || '';
+      
+      // Auto-select winner if winners mode and no player is selected yet
+      if (isCurrent && matchType === 'winners' && prevSet && prevSet.winnerTeamId) {
+        if (prevSet.winnerTeamId === team1.id && !t1Player && !set.team1PlayerId) {
+          setT1Player(prevSet.team1PlayerId || '');
+          setT1Char(prevSet.team1Character || '');
+        }
+        if (prevSet.winnerTeamId === team2.id && !t2Player && !set.team2PlayerId) {
+          setT2Player(prevSet.team2PlayerId || '');
+          setT2Char(prevSet.team2Character || '');
+        }
       }
+
+      // Keep the ref in sync with latest processed props
+      lastPropsRef.current = {
+        id: set.id,
+        team1PlayerId: set.team1PlayerId || '',
+        team2PlayerId: set.team2PlayerId || '',
+        team1Character: set.team1Character || '',
+        team2Character: set.team2Character || '',
+        isCurrent,
+        prevSetWinnerId: prevSet?.winnerTeamId || null,
+        prevSetT1Player: prevSet?.team1PlayerId || null,
+        prevSetT2Player: prevSet?.team2PlayerId || null,
+      };
     }
-    
-    setT1Player(defaultT1);
-    setT2Player(defaultT2);
-    setT1Char(defaultT1Char);
-    setT2Char(defaultT2Char);
-  }, [set.team1PlayerId, set.team2PlayerId, set.team1Character, set.team2Character, isCurrent, matchType, prevSet, team1.id, team2.id]);
+  }, [set.id, set.team1PlayerId, set.team2PlayerId, set.team1Character, set.team2Character, isCurrent, matchType, prevSet, team1.id, team2.id]);
 
   const t1Available = team1.players.filter((p: Player) => isDeciderSet || !playedByTeam1.has(p.id) || (matchType === 'winners' && p.id === t1Player));
   const t2Available = team2.players.filter((p: Player) => isDeciderSet || !playedByTeam2.has(p.id) || (matchType === 'winners' && p.id === t2Player));
@@ -305,94 +384,101 @@ const SetRow = ({
       {/* Set number button (Click to reset) */}
       <button 
         type="button"
-        onClick={set.winnerTeamId ? () => onResetSet(setIndex) : undefined}
-        disabled={!set.winnerTeamId}
-        className={`w-14 shrink-0 flex flex-col items-center justify-center border-r border-hairline/30 pr-3 mr-3 transition-all group/set select-none ${set.winnerTeamId ? 'cursor-pointer hover:bg-primary/20 rounded py-1 border-r-0' : ''}`}
-        title={set.winnerTeamId ? "이 세트 정보 수정하기 (초기화)" : ""}
+        onClick={(isAdmin && set.winnerTeamId) ? () => onResetSet(setIndex) : undefined}
+        disabled={!isAdmin || !set.winnerTeamId}
+        className={`w-14 shrink-0 flex flex-col items-center justify-center border-r border-hairline/30 pr-3 mr-3 transition-all group/set select-none ${(isAdmin && set.winnerTeamId) ? 'cursor-pointer hover:bg-primary/20 rounded py-1 border-r-0' : ''}`}
+        title={isAdmin && set.winnerTeamId ? "이 세트 정보 수정하기 (초기화)" : ""}
       >
         <span className="text-[8px] font-bold tracking-widest text-[#e11d48] uppercase group-hover/set:text-primary-hover transition-colors">Set</span>
         <span className="text-[15px] font-mono font-bold text-white group-hover/set:text-primary-hover transition-colors">{setIndex + 1}</span>
-        {set.winnerTeamId && (
+        {isAdmin && set.winnerTeamId && (
           <span className="text-[7.5px] font-bold text-primary animate-pulse group-hover/set:text-white transition-opacity select-none">수정 ↺</span>
         )}
       </button>
       
       {!set.winnerTeamId ? (
-        <div className="flex-1 flex items-center gap-3">
-          {/* Team 1 Controls: Player, Character, Win Button */}
-          <div className="flex-1 flex items-center gap-2">
-             <div className="flex-grow min-w-[90px]">
-               <select 
-                 className="glass-input text-xs text-white bg-[#0e1217]" 
-                 value={t1Player} 
-                 onChange={e => setT1Player(e.target.value)} 
-                 disabled={isLocked || !!set.winnerTeamId}
-               >
-                  <option value="" className="text-ink-tertiary">선수 선택</option>
-                  {t1Available.map((p: Player) => (
-                    <option key={p.id} value={p.id} className="text-white bg-[#0e1217]">{p.name}</option>
-                  ))}
-               </select>
-             </div>
-             
-             <CharacterSelect 
-               value={t1Char} 
-               onChange={setT1Char} 
-               placeholder="캐릭터 입력" 
-               disabled={isLocked || !!set.winnerTeamId}
-             />
-
-             <button 
-               disabled={!isFormValid} 
-               onClick={() => handleWin(team1.id)}
-               className={`px-3 py-1.5 rounded text-xs font-semibold cursor-pointer shrink-0 transition-all ${
-                 isFormValid 
-                   ? 'bg-primary/90 text-white hover:bg-primary border border-primary/30 shadow-[0_0_8px_rgba(225,29,72,0.25)]' 
-                   : 'bg-surface-2 text-ink-subtle opacity-40 cursor-not-allowed'
-               }`}
-             >
-               승리
-             </button>
+        !isAdmin ? (
+          <div className="flex-1 flex items-center justify-center py-2 text-[#e11d48]/50 font-mono text-[10px] tracking-wider uppercase bg-[#1a0507]/20 border border-[#e11d48]/10 rounded-lg select-none">
+            <svg className="w-3.5 h-3.5 mr-1.5 animate-pulse text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+            세트 대기 중 (Awaiting Play)
           </div>
-          
-          <div className="px-1 shrink-0 text-[10px] font-bold text-primary select-none opacity-60">VS</div>
-
-          {/* Team 2 Controls: Win Button, Player, Character */}
-          <div className="flex-1 flex items-center gap-2">
-             <button 
-               disabled={!isFormValid} 
-               onClick={() => handleWin(team2.id)}
-               className={`px-3 py-1.5 rounded text-xs font-semibold cursor-pointer shrink-0 transition-all ${
-                 isFormValid 
-                   ? 'bg-primary/90 text-white hover:bg-primary border border-primary/30 shadow-[0_0_8px_rgba(225,29,72,0.25)]' 
-                   : 'bg-surface-2 text-ink-subtle opacity-40 cursor-not-allowed'
-               }`}
-             >
-               승리
-             </button>
-
-             <div className="flex-grow min-w-[90px]">
-               <select 
-                 className="glass-input text-xs text-white bg-[#0e1217]" 
-                 value={t2Player} 
-                 onChange={e => setT2Player(e.target.value)} 
+        ) : (
+          <div className="flex-1 flex items-center gap-3">
+            {/* Team 1 Controls: Player, Character, Win Button */}
+            <div className="flex-1 flex items-center gap-2">
+               <div className="flex-grow min-w-[90px]">
+                 <select 
+                   className="glass-input text-xs text-white bg-[#0e1217]" 
+                   value={t1Player} 
+                   onChange={e => setT1Player(e.target.value)} 
+                   disabled={isLocked || !!set.winnerTeamId}
+                 >
+                    <option value="" className="text-ink-tertiary">선수 선택</option>
+                    {t1Available.map((p: Player) => (
+                      <option key={p.id} value={p.id} className="text-white bg-[#0e1217]">{p.name}</option>
+                    ))}
+                 </select>
+               </div>
+               
+               <CharacterSelect 
+                 value={t1Char} 
+                 onChange={setT1Char} 
+                 placeholder="캐릭터 입력" 
                  disabled={isLocked || !!set.winnerTeamId}
+               />
+
+               <button 
+                 disabled={!isFormValid} 
+                 onClick={() => handleWin(team1.id)}
+                 className={`px-3 py-1.5 rounded text-xs font-semibold cursor-pointer shrink-0 transition-all ${
+                   isFormValid 
+                     ? 'bg-primary/90 text-white hover:bg-primary border border-primary/30 shadow-[0_0_8px_rgba(225,29,72,0.25)]' 
+                     : 'bg-surface-2 text-ink-subtle opacity-40 cursor-not-allowed'
+                 }`}
                >
-                  <option value="" className="text-ink-tertiary">선수 선택</option>
-                  {t2Available.map((p: Player) => (
-                    <option key={p.id} value={p.id} className="text-white bg-[#0e1217]">{p.name}</option>
-                  ))}
-               </select>
-             </div>
-             
-             <CharacterSelect 
-               value={t2Char} 
-               onChange={setT2Char} 
-               placeholder="캐릭터 입력" 
-               disabled={isLocked || !!set.winnerTeamId}
-             />
+                 승리
+               </button>
+            </div>
+            
+            <div className="px-1 shrink-0 text-[10px] font-bold text-primary select-none opacity-60">VS</div>
+
+            {/* Team 2 Controls: Win Button, Player, Character */}
+            <div className="flex-1 flex items-center gap-2">
+               <button 
+                 disabled={!isFormValid} 
+                 onClick={() => handleWin(team2.id)}
+                 className={`px-3 py-1.5 rounded text-xs font-semibold cursor-pointer shrink-0 transition-all ${
+                   isFormValid 
+                     ? 'bg-primary/90 text-white hover:bg-primary border border-primary/30 shadow-[0_0_8px_rgba(225,29,72,0.25)]' 
+                     : 'bg-surface-2 text-ink-subtle opacity-40 cursor-not-allowed'
+                 }`}
+               >
+                 승리
+               </button>
+
+               <div className="flex-grow min-w-[90px]">
+                 <select 
+                   className="glass-input text-xs text-white bg-[#0e1217]" 
+                   value={t2Player} 
+                   onChange={e => setT2Player(e.target.value)} 
+                   disabled={isLocked || !!set.winnerTeamId}
+                 >
+                    <option value="" className="text-ink-tertiary">선수 선택</option>
+                    {t2Available.map((p: Player) => (
+                      <option key={p.id} value={p.id} className="text-white bg-[#0e1217]">{p.name}</option>
+                    ))}
+                 </select>
+               </div>
+               
+               <CharacterSelect 
+                 value={t2Char} 
+                 onChange={setT2Char} 
+                 placeholder="캐릭터 입력" 
+                 disabled={isLocked || !!set.winnerTeamId}
+               />
+            </div>
           </div>
-        </div>
+        )
       ) : (
         /* Completed view (One pure compact row) */
         <div className="flex-grow flex items-center justify-between px-2 text-xs">
@@ -431,4 +517,4 @@ const SetRow = ({
       )}
     </div>
   );
-}
+};

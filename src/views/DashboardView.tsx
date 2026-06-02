@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { useTournament } from '../store';
 import { 
   Users, 
@@ -17,161 +17,171 @@ import {
 export const DashboardView = () => {
   const { state } = useTournament();
   
-  // Cache entities and initialize statistics
-  const playerStats: Record<string, { id: string; name: string; teamId: string; teamName: string; wins: number; losses: number; played: number; characters: Set<string> }> = {};
-  const charStats: Record<string, { picks: number; wins: number; losses: number }> = {};
-  const teamStats: Record<string, { id: string; name: string; matchWins: number; matchLosses: number; matchPlayed: number; setWins: number; setLosses: number; characters: Set<string> }> = {};
+  // Memoize all statistics to prevent expensive re-computation on every render
+  const stats = useMemo(() => {
+    // Cache entities and initialize statistics
+    const playerStats: Record<string, { id: string; name: string; teamId: string; teamName: string; wins: number; losses: number; played: number; characters: Set<string> }> = {};
+    const charStats: Record<string, { picks: number; wins: number; losses: number }> = {};
+    const teamStats: Record<string, { id: string; name: string; matchWins: number; matchLosses: number; matchPlayed: number; setWins: number; setLosses: number; characters: Set<string> }> = {};
 
-  state.teams.forEach(t => {
-    teamStats[t.id] = {
-      id: t.id,
-      name: t.name,
-      matchWins: 0,
-      matchLosses: 0,
-      matchPlayed: 0,
-      setWins: 0,
-      setLosses: 0,
-      characters: new Set()
-    };
-
-    t.players.forEach(p => {
-      playerStats[p.id] = {
-        id: p.id,
-        name: p.name,
-        teamId: t.id,
-        teamName: t.name,
-        wins: 0,
-        losses: 0,
-        played: 0,
+    state.teams.forEach(t => {
+      teamStats[t.id] = {
+        id: t.id,
+        name: t.name,
+        matchWins: 0,
+        matchLosses: 0,
+        matchPlayed: 0,
+        setWins: 0,
+        setLosses: 0,
         characters: new Set()
       };
+
+      t.players.forEach(p => {
+        playerStats[p.id] = {
+          id: p.id,
+          name: p.name,
+          teamId: t.id,
+          teamName: t.name,
+          wins: 0,
+          losses: 0,
+          played: 0,
+          characters: new Set()
+        };
+      });
     });
-  });
 
-  let totalSetsCount = 0;
+    let totalSetsCount = 0;
 
-  // Traverse matches and records
-  state.matches.forEach(m => {
-    if (m.status === 'completed' && m.winnerId) {
-      if (teamStats[m.team1Id!]) {
-        teamStats[m.team1Id!].matchPlayed++;
-        if (m.winnerId === m.team1Id) teamStats[m.team1Id!].matchWins++;
-        else teamStats[m.team1Id!].matchLosses++;
-      }
-      if (teamStats[m.team2Id!]) {
-        teamStats[m.team2Id!].matchPlayed++;
-        if (m.winnerId === m.team2Id) teamStats[m.team2Id!].matchWins++;
-        else teamStats[m.team2Id!].matchLosses++;
-      }
-    }
-
-    m.sets.forEach(s => {
-      if (s.winnerTeamId) {
-        totalSetsCount++;
-        const t1Wins = s.winnerTeamId === m.team1Id;
-
-        if (m.team1Id && teamStats[m.team1Id]) {
-          if (t1Wins) teamStats[m.team1Id].setWins++;
-          else teamStats[m.team1Id].setLosses++;
+    // Traverse matches and records
+    state.matches.forEach(m => {
+      if (m.status === 'completed' && m.winnerId) {
+        if (teamStats[m.team1Id!]) {
+          teamStats[m.team1Id!].matchPlayed++;
+          if (m.winnerId === m.team1Id) teamStats[m.team1Id!].matchWins++;
+          else teamStats[m.team1Id!].matchLosses++;
         }
-        if (m.team2Id && teamStats[m.team2Id]) {
-          if (!t1Wins) teamStats[m.team2Id].setWins++;
-          else teamStats[m.team2Id].setLosses++;
+        if (teamStats[m.team2Id!]) {
+          teamStats[m.team2Id!].matchPlayed++;
+          if (m.winnerId === m.team2Id) teamStats[m.team2Id!].matchWins++;
+          else teamStats[m.team2Id!].matchLosses++;
         }
+      }
 
-        if (s.team1PlayerId && playerStats[s.team1PlayerId]) {
-          playerStats[s.team1PlayerId].played++;
-          if (t1Wins) playerStats[s.team1PlayerId].wins++;
-          else playerStats[s.team1PlayerId].losses++;
+      m.sets.forEach(s => {
+        if (s.winnerTeamId) {
+          totalSetsCount++;
+          const t1Wins = s.winnerTeamId === m.team1Id;
+
+          if (m.team1Id && teamStats[m.team1Id]) {
+            if (t1Wins) teamStats[m.team1Id].setWins++;
+            else teamStats[m.team1Id].setLosses++;
+          }
+          if (m.team2Id && teamStats[m.team2Id]) {
+            if (!t1Wins) teamStats[m.team2Id].setWins++;
+            else teamStats[m.team2Id].setLosses++;
+          }
+
+          if (s.team1PlayerId && playerStats[s.team1PlayerId]) {
+            playerStats[s.team1PlayerId].played++;
+            if (t1Wins) playerStats[s.team1PlayerId].wins++;
+            else playerStats[s.team1PlayerId].losses++;
+            if (s.team1Character) {
+              playerStats[s.team1PlayerId].characters.add(s.team1Character);
+              if (m.team1Id && teamStats[m.team1Id]) teamStats[m.team1Id].characters.add(s.team1Character);
+            }
+          }
+
+          if (s.team2PlayerId && playerStats[s.team2PlayerId]) {
+            playerStats[s.team2PlayerId].played++;
+            if (!t1Wins) playerStats[s.team2PlayerId].wins++;
+            else playerStats[s.team2PlayerId].losses++;
+            if (s.team2Character) {
+              playerStats[s.team2PlayerId].characters.add(s.team2Character);
+              if (m.team2Id && teamStats[m.team2Id]) teamStats[m.team2Id].characters.add(s.team2Character);
+            }
+          }
+
           if (s.team1Character) {
-            playerStats[s.team1PlayerId].characters.add(s.team1Character);
-            if (m.team1Id && teamStats[m.team1Id]) teamStats[m.team1Id].characters.add(s.team1Character);
+            const char = s.team1Character;
+            if (!charStats[char]) charStats[char] = { picks: 0, wins: 0, losses: 0 };
+            charStats[char].picks++;
+            if (t1Wins) charStats[char].wins++;
+            else charStats[char].losses++;
           }
-        }
 
-        if (s.team2PlayerId && playerStats[s.team2PlayerId]) {
-          playerStats[s.team2PlayerId].played++;
-          if (!t1Wins) playerStats[s.team2PlayerId].wins++;
-          else playerStats[s.team2PlayerId].losses++;
           if (s.team2Character) {
-            playerStats[s.team2PlayerId].characters.add(s.team2Character);
-            if (m.team2Id && teamStats[m.team2Id]) teamStats[m.team2Id].characters.add(s.team2Character);
+            const char = s.team2Character;
+            if (!charStats[char]) charStats[char] = { picks: 0, wins: 0, losses: 0 };
+            charStats[char].picks++;
+            if (!t1Wins) charStats[char].wins++;
+            else charStats[char].losses++;
           }
         }
-
-        if (s.team1Character) {
-          const char = s.team1Character;
-          if (!charStats[char]) charStats[char] = { picks: 0, wins: 0, losses: 0 };
-          charStats[char].picks++;
-          if (t1Wins) charStats[char].wins++;
-          else charStats[char].losses++;
-        }
-
-        if (s.team2Character) {
-          const char = s.team2Character;
-          if (!charStats[char]) charStats[char] = { picks: 0, wins: 0, losses: 0 };
-          charStats[char].picks++;
-          if (!t1Wins) charStats[char].wins++;
-          else charStats[char].losses++;
-        }
-      }
+      });
     });
-  });
 
-  const playerList = Object.values(playerStats);
-  const charList = Object.entries(charStats).map(([name, stat]) => ({ name, ...stat }));
-  const teamList = Object.values(teamStats);
+    const playerList = Object.values(playerStats);
+    const charList = Object.entries(charStats).map(([name, stat]) => ({ name, ...stat }));
+    const teamList = Object.values(teamStats);
 
-  // Diverse fighters (Team, Player)
-  const maxCharTeam = teamList.length > 0 ? [...teamList].sort((a,b) => b.characters.size - a.characters.size)[0] : null;
-  const maxCharPlayer = playerList.length > 0 ? [...playerList].sort((a,b) => b.characters.size - a.characters.size)[0] : null;
+    const maxCharTeam = teamList.length > 0 ? [...teamList].sort((a,b) => b.characters.size - a.characters.size)[0] : null;
+    const maxCharPlayer = playerList.length > 0 ? [...playerList].sort((a,b) => b.characters.size - a.characters.size)[0] : null;
 
-  // Player metrics
-  const topWinPlayer = playerList.length > 0 && playerList.some(p => p.wins > 0)
-    ? [...playerList].sort((a,b) => b.wins - a.wins)[0] 
-    : null;
-  const highestRatePlayer = playerList.length > 0 && playerList.some(p => p.played >= 2 && p.wins > 0)
-    ? [...playerList].filter(p => p.played >= 2).sort((a,b) => (b.wins/b.played) - (a.wins/a.played))[0] 
-    : null;
-  // 8강(본선) 진출 팀 ID 추출
-  const qfMatches = state.matches.filter(m => m.id.startsWith('QF_'));
-  const top8TeamIds = new Set<string>();
-  qfMatches.forEach(m => {
-    if (m.team1Id) top8TeamIds.add(m.team1Id);
-    if (m.team2Id) top8TeamIds.add(m.team2Id);
-  });
+    const topWinPlayer = playerList.length > 0 && playerList.some(p => p.wins > 0) ? [...playerList].sort((a,b) => b.wins - a.wins)[0] : null;
+    const highestRatePlayer = playerList.length > 0 && playerList.some(p => p.played >= 2 && p.wins > 0) ? [...playerList].filter(p => p.played >= 2).sort((a,b) => (b.wins/b.played) - (a.wins/a.played))[0] : null;
+    const qfMatches = state.matches.filter(m => m.id.startsWith('QF_'));
+    const top8TeamIds = new Set<string>();
+    qfMatches.forEach(m => {
+      if (m.team1Id) top8TeamIds.add(m.team1Id);
+      if (m.team2Id) top8TeamIds.add(m.team2Id);
+    });
 
-  // 버스왕: 8강 진출 팀원 중 승률이 가장 낮은 선수
-  const busKingPlayer = playerList.length > 0 && playerList.some(p => top8TeamIds.has(p.teamId) && p.played > 0)
-    ? [...playerList]
-        .filter(p => top8TeamIds.has(p.teamId) && p.played > 0)
-        .sort((a,b) => (a.wins/a.played) - (b.wins/b.played) || b.losses - a.losses)[0]
-    : null;
+    const busKingPlayer = playerList.length > 0 && playerList.some(p => top8TeamIds.has(p.teamId) && p.played > 0) ? [...playerList].filter(p => top8TeamIds.has(p.teamId) && p.played > 0).sort((a,b) => (a.wins/a.played) - (b.wins/b.played) || b.losses - a.losses)[0] : null;
+    const topPickChar = charList.length > 0 ? [...charList].sort((a,b) => b.picks - a.picks)[0] : null;
+    const topWinChar = charList.length > 0 && charList.some(c => c.wins > 0) ? [...charList].filter(c => c.picks >= 1).sort((a,b) => (b.wins/b.picks) - (a.wins/a.picks))[0] : null;
+    const topLossChar = charList.length > 0 && charList.some(c => c.losses > 0) ? [...charList].filter(c => c.picks >= 1).sort((a,b) => (b.losses/b.picks) - (a.losses/a.picks))[0] : null;
+    const highestWinRateTeam = teamList.length > 0 && teamList.some(t => t.matchPlayed > 0) 
+      ? [...teamList].filter(t => t.matchPlayed > 0).sort((a,b) => {
+          const rateA = a.matchWins / a.matchPlayed;
+          const rateB = b.matchWins / b.matchPlayed;
+          if (rateB !== rateA) return rateB - rateA;
+          return (b.matchWins - a.matchWins) || (b.setWins - a.setWins);
+        })[0] 
+      : null;
 
-  // Character metrics
-  const topPickChar = charList.length > 0 ? [...charList].sort((a,b) => b.picks - a.picks)[0] : null;
-  const topWinChar = charList.length > 0 && charList.some(c => c.wins > 0)
-    ? [...charList].filter(c => c.picks >= 1).sort((a,b) => (b.wins/b.picks) - (a.wins/a.picks))[0] 
-    : null;
-  const topLossChar = charList.length > 0 && charList.some(c => c.losses > 0)
-    ? [...charList].filter(c => c.picks >= 1).sort((a,b) => (b.losses/b.picks) - (a.losses/a.picks))[0] 
-    : null;
+    const finalMatch = state.matches.find(m => m.id === 'GF_1') || [...state.matches].sort((a,b) => b.round - a.round)[0];
+    const tournamentWinner = (finalMatch && finalMatch.status === 'completed' && finalMatch.winnerId) ? state.teams.find(t => t.id === finalMatch.winnerId) : null;
+    const completedMatches = state.matches.filter(m => m.status === 'completed').length;
 
-  // Winning Teams
-  const highestWinRateTeam = teamList.length > 0 && teamList.some(t => t.matchPlayed > 0)
-    ? [...teamList].filter(t => t.matchPlayed > 0).sort((a,b) => (b.matchWins/b.matchPlayed) - (a.matchWins/a.matchPlayed))[0] 
-    : null;
+    return {
+      maxCharTeam, maxCharPlayer, topWinPlayer, highestRatePlayer, busKingPlayer,
+      topPickChar, topWinChar, topLossChar, highestWinRateTeam, tournamentWinner,
+      totalMatches: state.matches.length, completedMatches, totalSetsCount
+    };
+  }, [state.teams, state.matches]);
 
-  const finalMatch = state.matches.find(m => m.id === 'GF_1') || [...state.matches].sort((a,b) => b.round - a.round)[0];
-  const tournamentWinner = (finalMatch && finalMatch.status === 'completed' && finalMatch.winnerId) 
-    ? state.teams.find(t => t.id === finalMatch.winnerId) 
-    : null;
+  // Memoize fire particles to prevent recreation (elevated delay and slower rise)
+  const winnerParticles = useMemo(() => {
+    const colors = ['bg-primary', 'bg-yellow-300', 'bg-white', 'bg-orange-400'];
+    return [...Array(40)].map((_, i) => ({
+      id: i,
+      color: colors[Math.floor(Math.random() * colors.length)],
+      size: 0.5 + Math.random() * 2,
+      left: `${-15 + Math.random() * 130}%`,
+      top: `${40 + Math.random() * 80}%`,
+      duration: `${2.0 + Math.random() * 3.5}s`,
+      delay: `${Math.random() * 6}s`
+    }));
+  }, []);
 
-  const totalMatches = state.matches.length;
-  const completedMatches = state.matches.filter(m => m.status === 'completed').length;
+  const {
+    maxCharTeam, maxCharPlayer, topWinPlayer, highestRatePlayer, busKingPlayer,
+    topPickChar, topWinChar, topLossChar, highestWinRateTeam, tournamentWinner,
+    totalMatches, completedMatches, totalSetsCount
+  } = stats;
 
   return (
-    <div className="p-8 h-full overflow-y-auto scrollbar-hidden">
+    <div className="p-8 h-full overflow-y-auto scrollbar-hidden translate-z-0 will-change-transform">
       <header className="mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
           <h1 className="text-3xl font-titular text-ink mb-1 font-bold">전투 관제소</h1>
@@ -225,41 +235,35 @@ export const DashboardView = () => {
       </h2>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
         {/* Championship Winner Card */}
-        <div className="glass-panel p-6 rounded-2xl border border-hairline/80 bg-gradient-to-br from-[#2a080e] via-[#0c0f12] to-[#0c0f12] flex flex-col justify-between relative overflow-hidden h-48">
+        <div className="glass-panel p-6 rounded-2xl border-2 border-primary/60 shadow-[0_0_25px_rgba(225,29,72,0.25)] bg-gradient-to-br from-[#2a080e] via-[#0c0f12] to-[#0c0f12] flex flex-col justify-between relative overflow-hidden h-48">
           {/* Intense Base Red Glow */}
-          <div className="absolute inset-0 z-0 pointer-events-none opacity-40 animate-flame-flow bg-gradient-to-br from-primary/30 via-primary/5 to-transparent"></div>
+          <div className="absolute inset-0 z-0 pointer-events-none opacity-40 animate-flame-flow bg-gradient-to-br from-primary/40 via-primary/5 to-transparent"></div>
           
-          <div className="absolute top-0 right-0 w-32 h-32 bg-primary/20 rounded-full blur-3xl -mr-10 -mt-10"></div>
+          <div className="absolute top-0 right-0 w-32 h-32 bg-primary/25 rounded-full blur-3xl -mr-10 -mt-10"></div>
           
           {/* Winner Card Fire Particles - More intense and wider range */}
-          <div className="absolute -inset-8 z-0 pointer-events-none overflow-hidden opacity-80">
-            {[...Array(40)].map((_, i) => {
-              const colors = ['bg-primary', 'bg-yellow-300', 'bg-white', 'bg-orange-400'];
-              const color = colors[Math.floor(Math.random() * colors.length)];
-              const size = 0.5 + Math.random() * 2;
-              
-              return (
-                <div 
-                  key={i}
-                  className={`absolute rounded-full blur-[0.7px] animate-fire-particle ${color}`}
-                  style={{ 
-                    width: `${size}px`,
-                    height: `${size}px`,
-                    left: `${-15 + Math.random() * 130}%`, 
-                    top: `${40 + Math.random() * 80}%`,
-                    '--duration': `${0.6 + Math.random() * 2}s`,
-                    animationDelay: `${Math.random() * 4}s`
-                  } as React.CSSProperties}
-                ></div>
-              );
-            })}
+          <div className="absolute -inset-8 z-0 pointer-events-none overflow-hidden opacity-85">
+            {winnerParticles.map((p) => (
+              <div 
+                key={p.id}
+                className={`absolute rounded-full blur-[0.7px] animate-fire-particle ${p.color}`}
+                style={{ 
+                  width: `${p.size}px`,
+                  height: `${p.size}px`,
+                  left: p.left, 
+                  top: p.top,
+                  '--duration': p.duration,
+                  animationDelay: p.delay
+                } as React.CSSProperties}
+              ></div>
+            ))}
           </div>
 
           <div className="relative z-10 h-full flex flex-col justify-between">
             <div>
               <div className="flex items-center justify-between mb-4">
-                <span className="px-2 py-0.5 text-[9px] uppercase font-bold tracking-widest bg-primary/20 text-primary border border-primary/30 rounded">Arena Champion</span>
-                <Crown className="w-5 h-5 text-[#f59e0b]" />
+                <span className="px-2 py-0.5 text-[9px] uppercase font-bold tracking-widest bg-primary/25 text-primary border border-primary/40 rounded shadow-[0_0_8px_rgba(225,29,72,0.2)]">Arena Champion</span>
+                <Crown className="w-5 h-5 text-[#f59e0b] animate-bounce" />
               </div>
               <p className="text-ink-tertiary text-[10px] mb-1 font-bold uppercase tracking-tighter">최종 우승팀</p>
               {tournamentWinner ? (
@@ -274,7 +278,10 @@ export const DashboardView = () => {
                   <Sparkles className="w-3.5 h-3.5" /> 대회를 제패하였습니다
                 </span>
               ) : (
-                <span className="text-ink-subtle">결승전 결과를 기다리는 중</span>
+                <span className="text-primary/70 font-semibold flex items-center gap-1.5">
+                  <svg className="w-3.5 h-3.5 animate-spin text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                  결승전 경기 진행 대기 중
+                </span>
               )}
             </div>
           </div>
@@ -303,7 +310,7 @@ export const DashboardView = () => {
         </div>
 
         {/* Most Diverse Team Card */}
-        <div className="glass-panel p-6 rounded-2xl border border-hairline/60 bg-[#0d1013] flex flex-col justify-between h-48">
+        <div className="glass-panel p-6 rounded-2xl border border-hairline/60 bg-[#0d1013] flex flex-col justify-between h-48 group relative cursor-help hover:border-purple-500/50 transition-all">
           <div>
             <div className="flex items-center justify-between mb-4">
               <span className="px-2 py-0.5 text-[9px] uppercase font-bold tracking-widest bg-purple-500/20 text-purple-400 border border-purple-500/30 rounded">Strategy</span>
@@ -311,7 +318,7 @@ export const DashboardView = () => {
             </div>
             <p className="text-ink-tertiary text-[10px] mb-1 font-bold uppercase tracking-tighter">최다 챔피언 기용 팀</p>
             {maxCharTeam && maxCharTeam.characters.size > 0 ? (
-              <h3 className="text-xl font-titular text-white font-black">{maxCharTeam.name}</h3>
+              <h3 className="text-xl font-titular text-white font-black truncate max-w-[170px]">{maxCharTeam.name}</h3>
             ) : (
               <h3 className="text-lg font-titular text-white/40 font-bold">분석 중...</h3>
             )}
@@ -322,6 +329,22 @@ export const DashboardView = () => {
               {maxCharTeam ? maxCharTeam.characters.size : 0}종
             </span>
           </div>
+
+          {/* Elegant Rollover Champion Pop-over Tooltip */}
+          {maxCharTeam && maxCharTeam.characters.size > 0 && (
+            <div className="absolute bottom-[92%] left-1/2 -translate-x-1/2 w-56 bg-[#0c0e12] border-2 border-purple-500/40 p-3 rounded-xl shadow-[0_10px_25px_rgba(0,0,0,0.8)] opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-250 z-50 pointer-events-none">
+              <div className="text-[10px] text-purple-400 font-extrabold uppercase tracking-widest mb-1.5 border-b border-hairline/20 pb-1 flex items-center justify-between">
+                <span>기용 챔피언 목록</span>
+                <span className="text-[9px] text-zinc-500">{maxCharTeam.characters.size}종</span>
+              </div>
+              <div className="flex flex-wrap gap-1 max-h-32 overflow-y-auto no-scrollbar">
+                {Array.from(maxCharTeam.characters).map(c => (
+                  <span key={c} className="px-1.5 py-0.5 bg-purple-950/40 text-purple-300 border border-purple-800/30 rounded text-[9px] font-black leading-none">{c}</span>
+                ))}
+              </div>
+              <div className="absolute bottom-[-6px] left-1/2 -translate-x-1/2 w-2.5 h-2.5 bg-[#0c0e12] border-r-2 border-b-2 border-purple-500/40 rotate-45"></div>
+            </div>
+          )}
         </div>
       </div>
 
@@ -381,7 +404,7 @@ export const DashboardView = () => {
         </div>
 
         {/* Most Diverse Player */}
-        <div className="glass-panel p-6 rounded-2xl border border-hairline/60 bg-[#0d1013] flex flex-col justify-between h-48 group hover:border-purple-500/50 transition-all">
+        <div className="glass-panel p-6 rounded-2xl border border-hairline/60 bg-[#0d1013] flex flex-col justify-between h-48 group relative cursor-help hover:border-purple-500/50 transition-all">
           <div className="flex items-center justify-between">
             <div className="w-8 h-8 rounded-lg bg-purple-500/10 border border-purple-500/20 flex items-center justify-center">
               <Sparkles className="w-4 h-4 text-purple-400" />
@@ -392,7 +415,7 @@ export const DashboardView = () => {
             {maxCharPlayer && maxCharPlayer.characters.size > 0 ? (
               <>
                 <h4 className="text-lg font-titular text-white font-black leading-tight truncate">{maxCharPlayer.name}</h4>
-                <p className="text-[10px] text-ink-subtle font-bold uppercase tracking-tighter">{maxCharPlayer.teamName}</p>
+                <p className="text-[10px] text-ink-subtle font-bold uppercase tracking-tighter truncate">{maxCharPlayer.teamName}</p>
               </>
             ) : (
               <h4 className="text-lg font-titular text-white/30 font-bold">분석 중...</h4>
@@ -402,6 +425,22 @@ export const DashboardView = () => {
             <span className="text-[10px] font-bold text-ink-tertiary">캐릭터 풀</span>
             <span className="text-sm font-mono font-black text-purple-400">{maxCharPlayer?.characters.size || 0}종</span>
           </div>
+
+          {/* Elegant Rollover Champion Pop-over Tooltip */}
+          {maxCharPlayer && maxCharPlayer.characters.size > 0 && (
+            <div className="absolute bottom-[92%] left-1/2 -translate-x-1/2 w-56 bg-[#0c0e12] border-2 border-purple-500/40 p-3 rounded-xl shadow-[0_10px_25px_rgba(0,0,0,0.8)] opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-250 z-50 pointer-events-none">
+              <div className="text-[10px] text-purple-400 font-extrabold uppercase tracking-widest mb-1.5 border-b border-hairline/20 pb-1 flex items-center justify-between">
+                <span>기용 챔피언 목록</span>
+                <span className="text-[9px] text-zinc-500">{maxCharPlayer.characters.size}종</span>
+              </div>
+              <div className="flex flex-wrap gap-1 max-h-32 overflow-y-auto no-scrollbar">
+                {Array.from(maxCharPlayer.characters).map(c => (
+                  <span key={c} className="px-1.5 py-0.5 bg-purple-950/40 text-purple-300 border border-purple-800/30 rounded text-[9px] font-black leading-none">{c}</span>
+                ))}
+              </div>
+              <div className="absolute bottom-[-6px] left-1/2 -translate-x-1/2 w-2.5 h-2.5 bg-[#0c0e12] border-r-2 border-b-2 border-purple-500/40 rotate-45"></div>
+            </div>
+          )}
         </div>
 
         {/* Bus King (Lowest Win Rate among Top 8) */}
@@ -410,13 +449,16 @@ export const DashboardView = () => {
             <div className="w-8 h-8 rounded-lg bg-orange-400/10 border border-orange-400/20 flex items-center justify-center">
               <HeartCrack className="w-4 h-4 text-orange-400" />
             </div>
-            <span className="text-[10px] font-mono text-orange-400 font-black tracking-tighter">버스왕 (8강 극강 가성비)</span>
+            <div className="text-right">
+              <div className="text-[10px] font-mono text-orange-400 font-black tracking-tighter">버스왕</div>
+              <div className="text-[8px] text-orange-400/60 font-bold tracking-tight uppercase leading-none">(8강 이상 최저승률)</div>
+            </div>
           </div>
           <div className="mt-4">
             {busKingPlayer ? (
               <>
                 <h4 className="text-lg font-titular text-white font-black leading-tight truncate">{busKingPlayer.name}</h4>
-                <p className="text-[10px] text-ink-subtle font-bold uppercase tracking-tighter">{busKingPlayer.teamName}</p>
+                <p className="text-[10px] text-ink-subtle font-bold uppercase tracking-tighter leading-none">{busKingPlayer.teamName}</p>
               </>
             ) : (
               <h4 className="text-lg font-titular text-white/30 font-bold">기록 없음</h4>

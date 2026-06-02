@@ -3,39 +3,51 @@ import path from "path";
 import fs from "fs";
 import { createServer as createViteServer } from "vite";
 
-const app = express();
+import { initializeApp } from "firebase/app";
+import { getFirestore, doc, getDoc, setDoc, deleteDoc, serverTimestamp } from "firebase/firestore";
+import firebaseConfig from "./firebase-applet-config.json";
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app, firebaseConfig.firestoreDatabaseId);
+
+const serverApp = express();
 const PORT = 3000;
-const STATE_FILE_PATH = path.join(process.cwd(), "tournament_state.json");
+const TOURNAMENT_DOC_PATH = "tournaments/singleton";
 
-app.use(express.json({ limit: "50mb" }));
+serverApp.use(express.json({ limit: "50mb" }));
 
-// Helper to load state
-function getTournamentState() {
-  if (fs.existsSync(STATE_FILE_PATH)) {
-    try {
-      const data = fs.readFileSync(STATE_FILE_PATH, "utf-8");
-      return JSON.parse(data);
-    } catch (e) {
-      console.error("Error reading stable state:", e);
+// Helper to load state from Firestore
+async function getTournamentState() {
+  try {
+    const docRef = doc(db, TOURNAMENT_DOC_PATH);
+    const docSnap = await getDoc(docRef);
+    if (docSnap.exists()) {
+      return docSnap.data();
     }
+  } catch (e) {
+    console.error("Error reading from Firestore:", e);
   }
   return null;
 }
 
-// Helper to save state
-function saveTournamentState(state: any) {
+// Helper to save state to Firestore
+async function saveTournamentState(state: any) {
   try {
-    fs.writeFileSync(STATE_FILE_PATH, JSON.stringify(state, null, 2), "utf-8");
+    const docRef = doc(db, TOURNAMENT_DOC_PATH);
+    await setDoc(docRef, {
+      ...state,
+      updatedAt: serverTimestamp()
+    });
     return true;
   } catch (e) {
-    console.error("Error saving stable state:", e);
+    console.error("Error saving to Firestore:", e);
     return false;
   }
 }
 
 // REST Api endpoints
-app.get("/api/tournament-state", (req, res) => {
-  const currentState = getTournamentState();
+serverApp.get("/api/tournament-state", async (req, res) => {
+  const currentState = await getTournamentState();
   if (currentState) {
     res.json({ success: true, data: currentState });
   } else {
@@ -43,29 +55,28 @@ app.get("/api/tournament-state", (req, res) => {
   }
 });
 
-app.post("/api/tournament-state", (req, res) => {
+serverApp.post("/api/tournament-state", async (req, res) => {
   const { state } = req.body;
   if (!state) {
     res.status(400).json({ success: false, message: "No state payload provided" });
     return;
   }
-  const result = saveTournamentState(state);
+  const result = await saveTournamentState(state);
   if (result) {
     res.json({ success: true });
   } else {
-    res.status(500).json({ success: false, message: "Failed to persist state on server" });
+    res.status(500).json({ success: false, message: "Failed to persist state on Firestore" });
   }
 });
 
 // Reset endpoint to clear server persistent data if needed
-app.post("/api/tournament-reset", (req, res) => {
+serverApp.post("/api/tournament-reset", async (req, res) => {
   try {
-    if (fs.existsSync(STATE_FILE_PATH)) {
-      fs.unlinkSync(STATE_FILE_PATH);
-    }
+    const docRef = doc(db, TOURNAMENT_DOC_PATH);
+    await deleteDoc(docRef);
     res.json({ success: true, message: "Server state cleared successfully" });
   } catch (e) {
-    res.status(500).json({ success: false, message: "Failed to clear server state" });
+    res.status(500).json({ success: false, message: "Failed to clear Firestore state" });
   }
 });
 
@@ -75,16 +86,16 @@ async function startServer() {
       server: { middlewareMode: true },
       appType: "spa",
     });
-    app.use(vite.middlewares);
+    serverApp.use(vite.middlewares);
   } else {
     const distPath = path.join(process.cwd(), "dist");
-    app.use(express.static(distPath));
-    app.get("*", (req, res) => {
+    serverApp.use(express.static(distPath));
+    serverApp.get("*", (req, res) => {
       res.sendFile(path.join(distPath, "index.html"));
     });
   }
 
-  app.listen(PORT, "0.0.0.0", () => {
+  serverApp.listen(PORT, "0.0.0.0", () => {
     console.log(`Server is running at http://localhost:${PORT}`);
   });
 }

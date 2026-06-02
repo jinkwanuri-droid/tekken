@@ -1,11 +1,12 @@
 import React, { useState, useMemo } from 'react';
-import { ShieldCheck, Lock, ArrowRight, Flame } from 'lucide-react';
+import { ShieldCheck, Lock, ArrowRight, Flame, X } from 'lucide-react';
 
 interface LoginViewProps {
   onLogin: () => void;
+  onClose?: () => void;
 }
 
-export const LoginView = ({ onLogin }: LoginViewProps) => {
+export const LoginView = ({ onLogin, onClose }: LoginViewProps) => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState(false);
 
@@ -44,7 +45,7 @@ export const LoginView = ({ onLogin }: LoginViewProps) => {
   };
 
   return (
-    <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black overflow-hidden p-6">
+    <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/95 backdrop-blur-md overflow-hidden p-6 animate-fade-in">
       {/* Intense Flame background effect matching header */}
       <div className="absolute inset-0 z-0 pointer-events-none">
         <div className="absolute inset-0 bg-gradient-to-br from-[#1a0508] via-black to-black"></div>
@@ -73,9 +74,23 @@ export const LoginView = ({ onLogin }: LoginViewProps) => {
       <div className="w-full max-w-sm relative z-10">
         <div className={`glass-panel p-10 rounded-[2.5rem] border border-hairline/40 bg-[#0c0f12]/70 backdrop-blur-3xl shadow-[0_40px_120px_rgba(0,0,0,0.9),0_0_60px_rgba(225,29,72,0.1)] relative transition-all duration-300 ${error ? 'border-primary ring-2 ring-primary/20 scale-[0.99] translate-x-1' : ''}`}>
           
+          {onClose && (
+            <button 
+              onClick={onClose}
+              className="absolute top-6 right-6 w-8 h-8 rounded-full border border-hairline/25 flex items-center justify-center text-ink-subtle hover:text-white transition-all bg-surface-1 hover:bg-surface-2 cursor-pointer"
+              title="관전 모드로 돌아가기"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          )}
+
           <div className="flex flex-col items-center mb-10">
-            <h1 className="text-[22px] font-titular text-white font-black tracking-[0.16em] text-center">TEKKEN IRON ARENA</h1>
-            <p className="text-primary text-[10px] mt-2 font-black uppercase tracking-[0.3em]">ACCESS PROTOCOL</p>
+            <h1 className="text-[28px] font-black text-white tracking-[0.08em] text-center uppercase font-titular leading-none mb-1">
+              TEKKEN IRON ARENA
+            </h1>
+            <p className="text-primary text-[10px] font-black uppercase tracking-[0.45em]">
+              ACCESS PROTOCOL
+            </p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
@@ -99,6 +114,17 @@ export const LoginView = ({ onLogin }: LoginViewProps) => {
                 </div>
               </div>
             </div>
+            
+            {onClose && (
+              <button
+                type="button"
+                onClick={onClose}
+                className="w-full py-3 px-4 bg-surface-2 hover:bg-surface-3 hover:text-white border border-hairline rounded-2xl text-xs font-bold text-ink-subtle transition-all cursor-pointer flex items-center justify-center gap-1.5"
+              >
+                <span>관전자 모드로 계속 보기</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </button>
+            )}
           </form>
 
           <div className="mt-12 pt-6 border-t border-hairline/10 flex items-center justify-center">

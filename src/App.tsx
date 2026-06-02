@@ -4,20 +4,22 @@ import { TeamsView } from './views/TeamsView';
 import { DashboardView } from './views/DashboardView';
 import { LoginView } from './views/LoginView';
 import { TournamentProvider } from './store';
-import { Gamepad2, Users, GitMerge, LayoutDashboard } from 'lucide-react';
+import { Gamepad2, Users, GitMerge, LayoutDashboard, Lock, ShieldCheck, LogOut } from 'lucide-react';
 
 const menuItems = [
-  { id: 'dashboard', label: '대시보드', icon: LayoutDashboard },
-  { id: 'bracket', label: '대진표', icon: GitMerge },
-  { id: 'teams', label: '팀 및 선수 관리', icon: Users },
+  { id: 'dashboard', label: '대시보드', icon: LayoutDashboard, adminOnly: false },
+  { id: 'bracket', label: '대진표', icon: GitMerge, adminOnly: false },
+  { id: 'teams', label: '팀 및 선수 관리', icon: Users, adminOnly: true },
 ];
 
-function Nav({ activeTab, setActiveTab }: { activeTab: string, setActiveTab: (tab: string) => void }) {
+function Nav({ activeTab, setActiveTab, isAdmin }: { activeTab: string, setActiveTab: (tab: string) => void, isAdmin: boolean }) {
+  const visibleItems = menuItems.filter(item => !item.adminOnly || isAdmin);
+
   return (
     <>
       {/* Desktop Nav */}
       <nav className="hidden md:flex items-center gap-2">
-        {menuItems.map(item => {
+        {visibleItems.map(item => {
           const Icon = item.icon;
           const isActive = activeTab === item.id;
           return (
@@ -40,7 +42,7 @@ function Nav({ activeTab, setActiveTab }: { activeTab: string, setActiveTab: (ta
       {/* Mobile Nav Bar (Bottom) */}
       <nav className="md:hidden fixed bottom-6 left-1/2 -translate-x-1/2 w-[calc(100%-32px)] max-w-lg h-16 bg-[#1a0505]/90 backdrop-blur-3xl border border-primary/40 rounded-2xl z-[100] px-1 flex items-center justify-around shadow-[0_20px_50px_rgba(0,0,0,0.8),0_0_30px_rgba(225,29,72,0.2)]">
         <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-primary/50 to-transparent" />
-        {menuItems.map(item => {
+        {visibleItems.map(item => {
           const Icon = item.icon;
           const isActive = activeTab === item.id;
           return (
@@ -70,15 +72,16 @@ function Nav({ activeTab, setActiveTab }: { activeTab: string, setActiveTab: (ta
 
 function AppContent() {
   const [activeTab, setActiveTab] = useState('dashboard');
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+  const [isAdmin, setIsAdmin] = useState<boolean>(false);
+  const [isLoginOpen, setIsLoginOpen] = useState<boolean>(false);
 
   useEffect(() => {
     const checkAuth = () => {
       const expiresAt = localStorage.getItem('auth_expires_at');
       if (expiresAt && Date.now() < parseInt(expiresAt)) {
-        setIsAuthenticated(true);
+        setIsAdmin(true);
       } else {
-        setIsAuthenticated(false);
+        setIsAdmin(false);
       }
     };
 
@@ -99,11 +102,17 @@ function AppContent() {
   const handleLogin = () => {
     const expiry = Date.now() + 3600000; // 1 hour from login
     localStorage.setItem('auth_expires_at', expiry.toString());
-    setIsAuthenticated(true);
+    setIsAdmin(true);
+    setIsLoginOpen(false);
   };
 
-  if (isAuthenticated === null) return null;
-  if (!isAuthenticated) return <LoginView onLogin={handleLogin} />;
+  const handleLogout = () => {
+    localStorage.removeItem('auth_expires_at');
+    setIsAdmin(false);
+    if (activeTab === 'teams') {
+      setActiveTab('dashboard');
+    }
+  };
 
   return (
     <div className="w-full h-screen bg-black bg-[radial-gradient(ellipse_at_center,rgba(225,29,72,0.15),transparent_80%),linear-gradient(to_bottom,#000000,#0c0202)] flex flex-col items-center justify-center font-sans text-ink p-0 sm:pt-0 sm:pb-6 sm:px-6 overflow-hidden">
@@ -154,23 +163,56 @@ function AppContent() {
             <svg width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='2'>
               <path d='M13 2L3 14h9l-1 8 10-12h-9l1-8z' fill='var(--color-primary)'/>
             </svg>
-            <span className="text-[15px] md:text-[18px] font-titular text-white tracking-widest whitespace-nowrap">TEKKEN IRON ARENA</span>
+            <span className="text-[13px] md:text-[18px] font-titular text-white tracking-widest whitespace-nowrap">TEKKEN IRON ARENA</span>
           </div>
           
-          <Nav activeTab={activeTab} setActiveTab={setActiveTab} />
+          <div className="flex items-center gap-4 relative z-10">
+            <Nav activeTab={activeTab} setActiveTab={setActiveTab} isAdmin={isAdmin} />
+            
+            {/* Admin Switcher Button */}
+            {isAdmin ? (
+              <div className="flex items-center gap-2 bg-[#10b981]/10 border border-[#10b981]/30 pl-2.5 pr-2 py-1 rounded-xl text-xs font-semibold text-[#10b981] select-none shrink-0">
+                <ShieldCheck className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">관리자</span>
+                <button 
+                  onClick={handleLogout}
+                  className="p-1 -mr-0.5 rounded-lg text-[#10b981]/70 hover:text-white hover:bg-white/5 transition-all cursor-pointer"
+                  title="관리자 로그아웃"
+                >
+                  <LogOut className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={() => setIsLoginOpen(true)}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[11px] font-black text-ink-subtle hover:text-white border border-hairline/40 hover:border-hairline hover:bg-white/5 transition-all text-center select-none shrink-0 cursor-pointer"
+              >
+                <Lock className="w-3 h-3 text-primary" />
+                <span>관리자 로그인</span>
+              </button>
+            )}
+          </div>
         </header>
 
         <main className={`bg-[#0c0f12] bg-[radial-gradient(circle_at_top_right,rgba(225,29,72,0.05),transparent)] overflow-y-auto no-scrollbar min-h-0 relative z-10 flex flex-col pt-0 ${activeTab === 'dashboard' ? 'pb-24 md:pb-0' : 'pb-20 md:pb-0'}`}>
            {activeTab === 'dashboard' && <DashboardView />}
-           {activeTab === 'bracket' && <BracketView />}
+           {activeTab === 'bracket' && <BracketView isAdmin={isAdmin} />}
            {activeTab === 'teams' && <TeamsView />}
-        </main>
+         </main>
       </div>
 
       {/* Mobile Nav Bar - Moved outside the grid container to ensure it stays on top */}
       <div className="md:hidden">
-        <Nav activeTab={activeTab} setActiveTab={setActiveTab} />
+        <Nav activeTab={activeTab} setActiveTab={setActiveTab} isAdmin={isAdmin} />
       </div>
+
+      {/* Login Overlay Modal */}
+      {isLoginOpen && (
+        <LoginView 
+          onLogin={handleLogin} 
+          onClose={() => setIsLoginOpen(false)} 
+        />
+      )}
     </div>
   );
 }

@@ -33,10 +33,10 @@
 }
 
 @keyframes fire-particle {
-  0% { transform: translate(-100px, 50px) scale(1.5); opacity: 0; filter: blur(2px) brightness(3); }
-  20% { opacity: 1; transform: translate(-20px, 0px) scale(1.3); }
-  60% { transform: translate(180px, -60px) scale(1.1); opacity: 0.9; filter: blur(1px) brightness(2); }
-  100% { transform: translate(450px, -120px) scale(0); opacity: 0; }
+  0% { transform: translateY(90px) translateX(0) scale(1.5); opacity: 0; filter: blur(2.5px) brightness(3); }
+  15% { opacity: 1; transform: translateY(50px) translateX(-5px) scale(1.3); }
+  55% { transform: translateY(-10px) translateX(5px) scale(1.0); opacity: 0.8; filter: blur(1.5px) brightness(2.5); }
+  100% { transform: translateY(-80px) translateX(0) scale(0.2); opacity: 0; }
 }
 
 @keyframes shimmer {
@@ -71,7 +71,9 @@
     opacity: 0;
   }
   .glass-panel {
-    @apply bg-surface-2 backdrop-blur-[12px] border border-hairline rounded-lg shadow-none;
+    @apply bg-[#0c0f12]/90 border border-hairline/80 rounded-lg shadow-none;
+    transform: translateZ(0);
+    backface-visibility: hidden;
   }
   .glass-button {
     @apply bg-transparent hover:bg-surface-2 border border-hairline rounded text-[13px] transition-all flex items-center justify-center gap-2;

@@ -50,7 +50,7 @@ export const TeamsView = () => {
         <p className="text-ink-subtle text-sm">토너먼트 참가 기준 및 참가자 명단을 수정합니다.</p>
       </header>
 
-      <div className="flex-1 overflow-auto p-8 scrollbar-hidden">
+      <div className="flex-1 overflow-auto p-8 scrollbar-hidden translate-z-0 will-change-transform">
         
         {/* Settings Area */}
         <div className="glass-panel p-6 rounded-xl mb-12 border-primary/20 bg-primary/5">

@@ -1,0 +1,18 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Default deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Tournament singleton state
+    match /tournaments/singleton {
+      // Allow read for everyone so participants can see the bracket
+      allow read: if true;
+      // Allow write for now to allow migration and easy trial
+      // In a real production app, we would restrict this to authenticated admins
+      allow write: if true;
+    }
+  }
+}
