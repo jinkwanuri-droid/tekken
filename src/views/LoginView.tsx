@@ -29,23 +29,26 @@ export const LoginView = ({ onLogin }: LoginViewProps) => {
         <div className="absolute inset-0 bg-gradient-to-r from-[#e11d48]/25 via-[#f43f5e]/15 to-transparent animate-flame-flow"></div>
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(225,29,72,0.2),transparent_75%)] animate-pulse"></div>
         
-        {/* Fire Particles for login background - Enhanced density and visibility */}
-        <div className="absolute inset-0 overflow-hidden opacity-60">
-          {[...Array(80)].map((_, i) => {
+        {/* Fire Particles for login background - Enhanced density and sweep from left */}
+        <div className="absolute inset-0 overflow-hidden opacity-70">
+          {[...Array(90)].map((_, i) => {
             const colors = ['bg-primary', 'bg-yellow-400', 'bg-white', 'bg-orange-500'];
             const color = colors[Math.floor(Math.random() * colors.length)];
-            const size = 0.8 + Math.random() * 2.2;
+            const size = 0.8 + Math.random() * 2.5;
+            // Bias starting positions strictly to the far left for a sweep effect
+            const startX = -20 + Math.random() * 40; 
+            
             return (
               <div 
                 key={i}
-                className={`absolute rounded-full blur-[0.4px] animate-fire-particle ${color}`}
+                className={`absolute rounded-full blur-[0.3px] animate-fire-particle ${color}`}
                 style={{ 
                   width: `${size}px`,
                   height: `${size}px`,
-                  left: `${Math.random() * 100}%`, 
-                  top: `${35 + Math.random() * 65}%`,
-                  '--duration': `${1.2 + Math.random() * 2.8}s`,
-                  animationDelay: `${Math.random() * 6}s`
+                  left: `${startX}%`, 
+                  top: `${45 + Math.random() * 55}%`,
+                  '--duration': `${2 + Math.random() * 4}s`,
+                  animationDelay: `${Math.random() * 10}s`
                 } as React.CSSProperties}
               ></div>
             );
