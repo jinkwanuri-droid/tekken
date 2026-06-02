@@ -298,7 +298,10 @@ const SetRow = ({
   const isFormValid = t1Player && t2Player && t1Char && t2Char;
 
   return (
-    <div className={`glass-panel px-4 py-2.5 flex items-center transition-all ${isCurrent ? 'active-match match-box bg-[#1c080b]/30' : 'opacity-70'} ${isLocked && !set.winnerTeamId ? 'opacity-30 grayscale pointer-events-none' : ''}`}>
+    <div 
+      style={{ zIndex: 30 - setIndex }}
+      className={`glass-panel px-4 py-2.5 flex items-center relative focus-within:z-50 transition-all ${isCurrent ? 'active-match match-box bg-[#1c080b]/30' : 'opacity-70'} ${isLocked && !set.winnerTeamId ? 'opacity-30 grayscale pointer-events-none' : ''}`}
+    >
       {/* Set number button (Click to reset) */}
       <button 
         type="button"

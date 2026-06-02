@@ -74,8 +74,8 @@ export const LoginView = ({ onLogin }: LoginViewProps) => {
         <div className={`glass-panel p-10 rounded-[2.5rem] border border-hairline/40 bg-[#0c0f12]/70 backdrop-blur-3xl shadow-[0_40px_120px_rgba(0,0,0,0.9),0_0_60px_rgba(225,29,72,0.1)] relative transition-all duration-300 ${error ? 'border-primary ring-2 ring-primary/20 scale-[0.99] translate-x-1' : ''}`}>
           
           <div className="flex flex-col items-center mb-10">
-            <h1 className="text-2xl font-titular text-white font-black tracking-[0.25em] text-center">ACCESS PROTOCOL</h1>
-            <p className="text-primary text-[10px] mt-2 font-black uppercase tracking-[0.4em]">TEKKEN IRON AREA</p>
+            <h1 className="text-[22px] font-titular text-white font-black tracking-[0.16em] text-center">TEKKEN IRON ARENA</h1>
+            <p className="text-primary text-[10px] mt-2 font-black uppercase tracking-[0.3em]">ACCESS PROTOCOL</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
