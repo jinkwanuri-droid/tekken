@@ -21,17 +21,18 @@ export const BracketView = ({ isAdmin }: { isAdmin: boolean }) => {
   const groupBStandings = useMemo(() => computeGroupStandings(state.teams, state.matches, 'B'), [state.teams, state.matches]);
   const groupCStandings = useMemo(() => computeGroupStandings(state.teams, state.matches, 'C'), [state.teams, state.matches]);
 
-  // Champion Arena particles should be memoized (longer duration makes them float extremely slowly)
+  // Champion Arena particles should be memoized (flowing smoothly left to right)
   const championParticles = useMemo(() => {
     const colors = ['bg-primary', 'bg-yellow-300', 'bg-white', 'bg-orange-400'];
-    return [...Array(60)].map((_, i) => ({
+    return [...Array(35)].map((_, i) => ({
       id: i,
       color: colors[Math.floor(Math.random() * colors.length)],
-      size: 0.5 + Math.random() * 2.5,
-      left: `${-20 + Math.random() * 140}%`,
-      top: `${30 + Math.random() * 90}%`,
-      duration: `${2.2 + Math.random() * 3.8}s`,
-      delay: `${Math.random() * 5}s`
+      size: 0.6 + Math.random() * 2.2,
+      left: `${-20 - Math.random() * 20}%`, // Start off-screen left
+      top: `${Math.random() * 100}%`,
+      duration: `${3.5 + Math.random() * 4.5}s`,
+      delay: `${Math.random() * 7}s`,
+      driftY: -50 - Math.random() * 100
     }));
   }, []);
 
@@ -674,13 +675,14 @@ export const BracketView = ({ isAdmin }: { isAdmin: boolean }) => {
                               {championParticles.map((p) => (
                                 <div 
                                   key={p.id}
-                                  className={`absolute rounded-full blur-[0.6px] animate-fire-particle ${p.color}`}
+                                  className={`absolute rounded-full blur-[0.6px] animate-fire-right-flow ${p.color}`}
                                   style={{ 
                                     width: `${p.size}px`,
                                     height: `${p.size}px`,
                                     left: p.left, 
                                     top: p.top,
                                     '--duration': p.duration,
+                                    '--drift-y': `${p.driftY}px`,
                                     animationDelay: p.delay
                                   } as React.CSSProperties}
                                 ></div>

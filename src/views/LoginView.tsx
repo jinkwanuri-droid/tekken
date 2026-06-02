@@ -13,19 +13,21 @@ export const LoginView = ({ onLogin, onClose }: LoginViewProps) => {
   // Generate fire particles once to prevent re-creation on render (keystrokes)
   const particles = useMemo(() => {
     const colors = ['bg-primary', 'bg-yellow-400', 'bg-white', 'bg-orange-500'];
-    return [...Array(90)].map((_, i) => {
+    return [...Array(50)].map((_, i) => {
       const color = colors[Math.floor(Math.random() * colors.length)];
       const size = 0.8 + Math.random() * 2.5;
-      const startX = -20 + Math.random() * 40;
-      const top = 45 + Math.random() * 55;
-      const duration = 2 + Math.random() * 4;
-      const delay = Math.random() * 10;
+      const startX = -15 - Math.random() * 15; // Start off-screen left
+      const top = Math.random() * 100;
+      const duration = 4 + Math.random() * 5;
+      const delay = Math.random() * 8;
+      const driftY = -120 - Math.random() * 180;
       return {
         id: i,
         color,
         size,
         startX,
         top,
+        driftY,
         duration: `${duration}s`,
         delay: `${delay}s`
       };
@@ -52,18 +54,19 @@ export const LoginView = ({ onLogin, onClose }: LoginViewProps) => {
         <div className="absolute inset-0 bg-gradient-to-r from-[#e11d48]/25 via-[#f43f5e]/15 to-transparent animate-flame-flow"></div>
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(225,29,72,0.2),transparent_75%)] animate-pulse"></div>
         
-        {/* Fire Particles for login background - Enhanced density and sweep from left */}
-        <div className="absolute inset-0 overflow-hidden opacity-70">
+        {/* Leftward flying Fire Particles for background */}
+        <div className="absolute inset-0 overflow-hidden opacity-75">
           {particles.map((p) => (
             <div 
               key={p.id}
-              className={`absolute rounded-full blur-[0.3px] animate-fire-particle ${p.color}`}
+              className={`absolute rounded-full blur-[0.3px] animate-fire-right-flow ${p.color}`}
               style={{ 
                 width: `${p.size}px`,
                 height: `${p.size}px`,
                 left: `${p.startX}%`, 
                 top: `${p.top}%`,
                 '--duration': p.duration,
+                '--drift-y': `${p.driftY}px`,
                 animationDelay: p.delay
               } as React.CSSProperties}
             ></div>

@@ -137,9 +137,28 @@ export const DashboardView = () => {
     });
 
     const busKingPlayer = playerList.length > 0 && playerList.some(p => top8TeamIds.has(p.teamId) && p.played > 0) ? [...playerList].filter(p => top8TeamIds.has(p.teamId) && p.played > 0).sort((a,b) => (a.wins/a.played) - (b.wins/b.played) || b.losses - a.losses)[0] : null;
-    const topPickChar = charList.length > 0 ? [...charList].sort((a,b) => b.picks - a.picks)[0] : null;
-    const topWinChar = charList.length > 0 && charList.some(c => c.wins > 0) ? [...charList].filter(c => c.picks >= 1).sort((a,b) => (b.wins/b.picks) - (a.wins/a.picks))[0] : null;
-    const topLossChar = charList.length > 0 && charList.some(c => c.losses > 0) ? [...charList].filter(c => c.picks >= 1).sort((a,b) => (b.losses/b.picks) - (a.losses/a.picks))[0] : null;
+    const top3PickChars = charList.length > 0 
+      ? [...charList]
+          .sort((a,b) => b.picks - a.picks || b.wins - a.wins)
+          .slice(0, 3)
+      : [];
+    
+    // Calculate Top 3 Highest Win Rate Characters (at least 1 pick)
+    const top3WinChars = charList.length > 0 
+      ? [...charList]
+          .filter(c => c.picks >= 1)
+          .sort((a,b) => (b.wins/b.picks) - (a.wins/a.picks) || b.picks - a.picks)
+          .slice(0, 3)
+      : [];
+
+    // Calculate Top 3 Lowest Win Rate Characters (at least 1 pick)
+    const top3LossChars = charList.length > 0 
+      ? [...charList]
+          .filter(c => c.picks >= 1)
+          .sort((a,b) => (a.wins/a.picks) - (b.wins/b.picks) || a.picks - b.picks)
+          .slice(0, 3)
+      : [];
+
     const highestWinRateTeam = teamList.length > 0 && teamList.some(t => t.matchPlayed > 0) 
       ? [...teamList].filter(t => t.matchPlayed > 0).sort((a,b) => {
           const rateA = a.matchWins / a.matchPlayed;
@@ -155,28 +174,29 @@ export const DashboardView = () => {
 
     return {
       maxCharTeam, maxCharPlayer, topWinPlayer, highestRatePlayer, busKingPlayer,
-      topPickChar, topWinChar, topLossChar, highestWinRateTeam, tournamentWinner,
+      top3PickChars, top3WinChars, top3LossChars, highestWinRateTeam, tournamentWinner,
       totalMatches: state.matches.length, completedMatches, totalSetsCount
     };
   }, [state.teams, state.matches]);
 
-  // Memoize fire particles to prevent recreation (elevated delay and slower rise)
+  // Memoize fire particles to prevent recreation (flowing smoothly left to right)
   const winnerParticles = useMemo(() => {
     const colors = ['bg-primary', 'bg-yellow-300', 'bg-white', 'bg-orange-400'];
-    return [...Array(40)].map((_, i) => ({
+    return [...Array(22)].map((_, i) => ({
       id: i,
       color: colors[Math.floor(Math.random() * colors.length)],
-      size: 0.5 + Math.random() * 2,
-      left: `${-15 + Math.random() * 130}%`,
-      top: `${40 + Math.random() * 80}%`,
-      duration: `${2.0 + Math.random() * 3.5}s`,
-      delay: `${Math.random() * 6}s`
+      size: 0.6 + Math.random() * 1.6,
+      left: `${-20 - Math.random() * 20}%`, // Start off-screen left
+      top: `${Math.random() * 100}%`,
+      duration: `${4.5 + Math.random() * 5.5}s`,
+      delay: `${Math.random() * 7}s`,
+      driftY: -40 - Math.random() * 60
     }));
   }, []);
 
   const {
     maxCharTeam, maxCharPlayer, topWinPlayer, highestRatePlayer, busKingPlayer,
-    topPickChar, topWinChar, topLossChar, highestWinRateTeam, tournamentWinner,
+    top3PickChars, top3WinChars, top3LossChars, highestWinRateTeam, tournamentWinner,
     totalMatches, completedMatches, totalSetsCount
   } = stats;
 
@@ -246,13 +266,14 @@ export const DashboardView = () => {
             {winnerParticles.map((p) => (
               <div 
                 key={p.id}
-                className={`absolute rounded-full blur-[0.7px] animate-fire-particle ${p.color}`}
+                className={`absolute rounded-full blur-[0.7px] animate-fire-right-flow ${p.color}`}
                 style={{ 
                   width: `${p.size}px`,
                   height: `${p.size}px`,
                   left: p.left, 
                   top: p.top,
                   '--duration': p.duration,
+                  '--drift-y': `${p.driftY}px`,
                   animationDelay: p.delay
                 } as React.CSSProperties}
               ></div>
@@ -301,11 +322,20 @@ export const DashboardView = () => {
               <h3 className="text-lg font-titular text-white/40 font-bold">데이터 부족</h3>
             )}
           </div>
-          <div className="mt-4 flex items-center justify-between">
-            <span className="text-xs text-ink-subtle">매치 승률</span>
-            <span className="text-lg font-mono font-black text-blue-400 tracking-tighter">
-              {highestWinRateTeam && highestWinRateTeam.matchPlayed > 0 ? Math.round((highestWinRateTeam.matchWins / highestWinRateTeam.matchPlayed) * 100) : 0}%
-            </span>
+          <div className="mt-4 flex flex-col gap-0.5">
+            <div className="flex items-center justify-between">
+              <span className="text-xs text-ink-subtle">매치 승률</span>
+              <span className="text-lg font-mono font-black text-blue-400 tracking-tighter leading-none">
+                {highestWinRateTeam && highestWinRateTeam.matchPlayed > 0 ? Math.round((highestWinRateTeam.matchWins / highestWinRateTeam.matchPlayed) * 100) : 0}%
+              </span>
+            </div>
+            <div className="flex items-center justify-end">
+              <span className="text-[10px] font-mono font-bold text-blue-400/60 leading-none">
+                ({highestWinRateTeam && (highestWinRateTeam.setWins + highestWinRateTeam.setLosses) > 0 
+                  ? Math.round((highestWinRateTeam.setWins / (highestWinRateTeam.setWins + highestWinRateTeam.setLosses)) * 100) 
+                  : 0}% 세트 승률)
+              </span>
+            </div>
           </div>
         </div>
 
@@ -478,85 +508,84 @@ export const DashboardView = () => {
         <Target className="w-4 h-4 text-primary" /> FIGHTER META ANALYSIS
       </h2>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        {/* Most Picked Character */}
-        <div className="glass-panel p-6 rounded-2xl border border-hairline/40 bg-[#0d1013] flex flex-col justify-between h-44">
-          <div>
-            <p className="text-[10px] text-ink-tertiary uppercase font-mono tracking-widest mb-1">POPULARITY MEASURE</p>
-            <h4 className="text-sm font-bold text-white mb-4">가장 선호하는 격투 강자</h4>
-            {topPickChar ? (
-              <div className="flex items-end justify-between">
-                <span className="text-2xl font-titular text-white font-black">{topPickChar.name}</span>
-                <div className="text-right">
-                  <span className="text-xl font-titular text-primary font-black font-mono">{topPickChar.picks}회</span>
-                </div>
-              </div>
-            ) : (
-              <p className="text-xs text-ink-tertiary py-2 font-bold opacity-30">데이터 초기화 중...</p>
-            )}
-          </div>
-          <div className="mt-auto pt-2">
-            <div className="h-1 w-full bg-surface-2 rounded-full overflow-hidden">
-              <div 
-                className="h-full bg-primary" 
-                style={{ width: `${topPickChar && totalSetsCount > 0 ? Math.min(100, (topPickChar.picks / (totalSetsCount * 2)) * 100) : 0}%` }}
-              ></div>
+        {/* Most Picked Characters TOP 3 */}
+        <div className="glass-panel p-6 rounded-2xl border border-hairline/40 bg-[#0d1013] flex flex-col h-48">
+          <div className="flex items-center justify-between mb-3">
+            <div>
+              <p className="text-[10px] text-ink-tertiary uppercase font-mono tracking-widest leading-none mb-1">POPULARITY MEASURE</p>
+              <h4 className="text-sm font-bold text-white">PICK TOP 3</h4>
             </div>
+            <Flame className="w-4 h-4 text-primary" />
+          </div>
+          
+          <div className="flex-1 flex flex-col justify-center space-y-2.5">
+            {top3PickChars.length > 0 ? top3PickChars.map((c, idx) => (
+              <div key={c.name} className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className={`w-4 h-4 flex items-center justify-center rounded text-[9px] font-black ${idx === 0 ? 'bg-primary text-white' : 'bg-white/10 text-ink-subtle'}`}>
+                    {idx + 1}
+                  </span>
+                  <span className="text-xs font-bold text-ink truncate max-w-[100px]">{c.name}</span>
+                </div>
+                <span className="text-xs font-mono font-black text-primary">{c.picks}회</span>
+              </div>
+            )) : (
+              <p className="text-[10px] text-ink-tertiary text-center italic py-2">기록 대기 중</p>
+            )}
           </div>
         </div>
 
-        {/* Highest Win Rate Character */}
-        <div className="glass-panel p-6 rounded-2xl border border-hairline/40 bg-[#0d1013] flex flex-col justify-between h-44">
-          <div>
-            <p className="text-[10px] text-ink-tertiary uppercase font-mono tracking-widest mb-1">WINNING POTENTIAL</p>
-            <h4 className="text-sm font-bold text-white mb-4">최고 승률 시그니처</h4>
-            {topWinChar ? (
-              <div className="flex items-end justify-between">
-                <span className="text-2xl font-titular text-white font-black">{topWinChar.name}</span>
-                <div className="text-right">
-                  <span className="text-xl font-titular text-emerald-400 font-black font-mono">
-                    {Math.round((topWinChar.wins / topWinChar.picks) * 100)}%
-                  </span>
-                </div>
-              </div>
-            ) : (
-              <p className="text-xs text-ink-tertiary py-2 font-bold opacity-30">대기 중</p>
-            )}
-          </div>
-          <div className="mt-auto pt-2">
-            <div className="h-1 w-full bg-surface-2 rounded-full overflow-hidden">
-              <div 
-                className="h-full bg-emerald-400" 
-                style={{ width: `${topWinChar ? Math.round((topWinChar.wins / topWinChar.picks) * 100) : 0}%` }}
-              ></div>
+        {/* Highest Win Rate Characters TOP 3 */}
+        <div className="glass-panel p-6 rounded-2xl border border-hairline/40 bg-[#0d1013] flex flex-col h-48">
+          <div className="flex items-center justify-between mb-3">
+            <div>
+              <p className="text-[10px] text-ink-tertiary uppercase font-mono tracking-widest leading-none mb-1">WINNING POTENTIAL</p>
+              <h4 className="text-sm font-bold text-white">승률 최고 TOP 3</h4>
             </div>
+            <Award className="w-4 h-4 text-emerald-400" />
+          </div>
+          
+          <div className="flex-1 flex flex-col justify-center space-y-2.5">
+            {top3WinChars.length > 0 ? top3WinChars.map((c, idx) => (
+              <div key={c.name} className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className={`w-4 h-4 flex items-center justify-center rounded text-[9px] font-black ${idx === 0 ? 'bg-emerald-500 text-white' : 'bg-white/10 text-ink-subtle'}`}>
+                    {idx + 1}
+                  </span>
+                  <span className="text-xs font-bold text-ink truncate max-w-[100px]">{c.name}</span>
+                </div>
+                <span className="text-xs font-mono font-black text-emerald-400">{Math.round((c.wins / c.picks) * 100)}%</span>
+              </div>
+            )) : (
+              <p className="text-[10px] text-ink-tertiary text-center italic py-2">기록 대기 중</p>
+            )}
           </div>
         </div>
 
-        {/* Highest Loss Rate Character */}
-        <div className="glass-panel p-6 rounded-2xl border border-hairline/40 bg-[#0d1013] flex flex-col justify-between h-44">
-          <div>
-            <p className="text-[10px] text-ink-tertiary uppercase font-mono tracking-widest mb-1">STRUGGLING META</p>
-            <h4 className="text-sm font-bold text-white mb-4">생존 난이도 최상 캐릭터</h4>
-            {topLossChar ? (
-              <div className="flex items-end justify-between">
-                <span className="text-2xl font-titular text-white font-black">{topLossChar.name}</span>
-                <div className="text-right">
-                  <span className="text-xl font-titular text-orange-400 font-black font-mono">
-                    {Math.round((topLossChar.losses / topLossChar.picks) * 100)}%
-                  </span>
-                </div>
-              </div>
-            ) : (
-              <p className="text-xs text-ink-tertiary py-2 font-bold opacity-30">대기 중</p>
-            )}
-          </div>
-          <div className="mt-auto pt-2">
-            <div className="h-1 w-full bg-surface-2 rounded-full overflow-hidden">
-              <div 
-                className="h-full bg-orange-400" 
-                style={{ width: `${topLossChar ? Math.round((topLossChar.losses / topLossChar.picks) * 100) : 0}%` }}
-              ></div>
+        {/* Lowest Win Rate Characters TOP 3 */}
+        <div className="glass-panel p-6 rounded-2xl border border-hairline/40 bg-[#0d1013] flex flex-col h-48">
+          <div className="flex items-center justify-between mb-3">
+            <div>
+              <p className="text-[10px] text-ink-tertiary uppercase font-mono tracking-widest leading-none mb-1">STRUGGLING META</p>
+              <h4 className="text-sm font-bold text-white">승률 최하 TOP 3</h4>
             </div>
+            <HeartCrack className="w-4 h-4 text-rose-500" />
+          </div>
+          
+          <div className="flex-1 flex flex-col justify-center space-y-2.5">
+            {top3LossChars.length > 0 ? top3LossChars.map((c, idx) => (
+              <div key={c.name} className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className={`w-4 h-4 flex items-center justify-center rounded text-[9px] font-black ${idx === 0 ? 'bg-rose-500 text-white' : 'bg-white/10 text-ink-subtle'}`}>
+                    {idx + 1}
+                  </span>
+                  <span className="text-xs font-bold text-ink truncate max-w-[100px]">{c.name}</span>
+                </div>
+                <span className="text-xs font-mono font-black text-rose-500">{Math.round((c.wins / c.picks) * 100)}%</span>
+              </div>
+            )) : (
+              <p className="text-[10px] text-ink-tertiary text-center italic py-2">기록 대기 중</p>
+            )}
           </div>
         </div>
       </div>

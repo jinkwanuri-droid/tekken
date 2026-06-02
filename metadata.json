@@ -1,6 +1,6 @@
 {
-  "name": "",
-  "description": "",
+  "name": "Tekken Iron Arena",
+  "description": "철권 토너먼트 및 대진표 관리 시스템",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }
