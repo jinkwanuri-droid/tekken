@@ -225,26 +225,29 @@ export const DashboardView = () => {
       </h2>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
         {/* Championship Winner Card */}
-        <div className="glass-panel p-6 rounded-2xl border border-hairline/80 bg-gradient-to-br from-[#1c0f12] via-[#0c0f12] to-[#0c0f12] flex flex-col justify-between relative overflow-hidden h-48">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full blur-3xl -mr-10 -mt-10"></div>
+        <div className="glass-panel p-6 rounded-2xl border border-hairline/80 bg-gradient-to-br from-[#2a080e] via-[#0c0f12] to-[#0c0f12] flex flex-col justify-between relative overflow-hidden h-48">
+          {/* Intense Base Red Glow */}
+          <div className="absolute inset-0 z-0 pointer-events-none opacity-40 animate-flame-flow bg-gradient-to-br from-primary/30 via-primary/5 to-transparent"></div>
           
-          {/* Winner Card Fire Particles */}
-          <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden opacity-60">
-            {[...Array(25)].map((_, i) => {
+          <div className="absolute top-0 right-0 w-32 h-32 bg-primary/20 rounded-full blur-3xl -mr-10 -mt-10"></div>
+          
+          {/* Winner Card Fire Particles - More intense and wider range */}
+          <div className="absolute -inset-8 z-0 pointer-events-none overflow-hidden opacity-80">
+            {[...Array(40)].map((_, i) => {
               const colors = ['bg-primary', 'bg-yellow-300', 'bg-white', 'bg-orange-400'];
               const color = colors[Math.floor(Math.random() * colors.length)];
-              const size = 0.5 + Math.random() * 1.5;
+              const size = 0.5 + Math.random() * 2;
               
               return (
                 <div 
                   key={i}
-                  className={`absolute rounded-full blur-[0.5px] animate-fire-particle ${color}`}
+                  className={`absolute rounded-full blur-[0.7px] animate-fire-particle ${color}`}
                   style={{ 
                     width: `${size}px`,
                     height: `${size}px`,
-                    left: `${-5 + Math.random() * 110}%`, 
-                    top: `${50 + Math.random() * 60}%`,
-                    '--duration': `${0.8 + Math.random() * 2.2}s`,
+                    left: `${-15 + Math.random() * 130}%`, 
+                    top: `${40 + Math.random() * 80}%`,
+                    '--duration': `${0.6 + Math.random() * 2}s`,
                     animationDelay: `${Math.random() * 4}s`
                   } as React.CSSProperties}
                 ></div>

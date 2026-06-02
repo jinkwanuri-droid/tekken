@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { BracketView } from './views/BracketView';
 import { TeamsView } from './views/TeamsView';
 import { DashboardView } from './views/DashboardView';
+import { LoginView } from './views/LoginView';
 import { TournamentProvider } from './store';
 import { Gamepad2, Users, GitMerge, LayoutDashboard } from 'lucide-react';
 
@@ -69,6 +70,40 @@ function Nav({ activeTab, setActiveTab }: { activeTab: string, setActiveTab: (ta
 
 function AppContent() {
   const [activeTab, setActiveTab] = useState('dashboard');
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    const checkAuth = () => {
+      const expiresAt = localStorage.getItem('auth_expires_at');
+      if (expiresAt && Date.now() < parseInt(expiresAt)) {
+        setIsAuthenticated(true);
+      } else {
+        setIsAuthenticated(false);
+      }
+    };
+
+    checkAuth();
+
+    // Session refresh interval: While active, extend the expiry every 5 minutes
+    const interval = setInterval(() => {
+      const expiresAt = localStorage.getItem('auth_expires_at');
+      if (expiresAt && Date.now() < parseInt(expiresAt)) {
+        const newExpiry = Date.now() + 3600000; // 1 hour from now
+        localStorage.setItem('auth_expires_at', newExpiry.toString());
+      }
+    }, 300000); // Check every 5 minutes
+
+    return () => clearInterval(interval);
+  }, []);
+
+  const handleLogin = () => {
+    const expiry = Date.now() + 3600000; // 1 hour from login
+    localStorage.setItem('auth_expires_at', expiry.toString());
+    setIsAuthenticated(true);
+  };
+
+  if (isAuthenticated === null) return null;
+  if (!isAuthenticated) return <LoginView onLogin={handleLogin} />;
 
   return (
     <div className="w-full h-screen bg-black bg-[radial-gradient(ellipse_at_center,rgba(225,29,72,0.15),transparent_80%),linear-gradient(to_bottom,#000000,#0c0202)] flex flex-col items-center justify-center font-sans text-ink p-0 sm:pt-0 sm:pb-6 sm:px-6 overflow-hidden">
@@ -125,7 +160,7 @@ function AppContent() {
           <Nav activeTab={activeTab} setActiveTab={setActiveTab} />
         </header>
 
-        <main className={`bg-[#0c0f12] bg-[radial-gradient(circle_at_top_right,rgba(225,29,72,0.05),transparent)] overflow-hidden min-h-0 relative z-10 flex flex-col pt-0 ${activeTab === 'dashboard' ? 'pb-24 md:pb-0' : 'pb-20 md:pb-0'}`}>
+        <main className={`bg-[#0c0f12] bg-[radial-gradient(circle_at_top_right,rgba(225,29,72,0.05),transparent)] overflow-y-auto no-scrollbar min-h-0 relative z-10 flex flex-col pt-0 ${activeTab === 'dashboard' ? 'pb-24 md:pb-0' : 'pb-20 md:pb-0'}`}>
            {activeTab === 'dashboard' && <DashboardView />}
            {activeTab === 'bracket' && <BracketView />}
            {activeTab === 'teams' && <TeamsView />}

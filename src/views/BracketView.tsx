@@ -163,7 +163,7 @@ export const BracketView = () => {
 
       {isHybrid ? (
         activeTab === 'league' ? (
-          <div className="flex-1 overflow-y-auto p-6 scrollbar-hidden translate-z-0 will-change-transform">
+          <div className="flex-1 overflow-y-auto p-6 no-scrollbar translate-z-0 will-change-transform">
             {/* 3 Groups Horizontal Efficient Layout */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start pb-16">
               
@@ -180,7 +180,7 @@ export const BracketView = () => {
                 </div>
 
                 {/* Standing Table with fixed heights & columns */}
-                <div className="overflow-x-auto mb-6 shrink-0 h-[165px] overflow-hidden">
+                <div className="overflow-x-auto no-scrollbar mb-6 shrink-0 h-[165px] overflow-hidden">
                   <table className="w-full text-left text-[11px] table-fixed">
                     <thead>
                       <tr className="border-b border-hairline/40 text-ink-subtle font-semibold bg-canvas/30">
@@ -283,7 +283,7 @@ export const BracketView = () => {
                 </div>
 
                 {/* Standing Table with fixed heights & columns */}
-                <div className="overflow-x-auto mb-6 shrink-0 h-[165px] overflow-hidden">
+                <div className="overflow-x-auto no-scrollbar mb-6 shrink-0 h-[165px] overflow-hidden">
                   <table className="w-full text-left text-[11px] table-fixed">
                     <thead>
                       <tr className="border-b border-hairline/40 text-ink-subtle font-semibold bg-canvas/30">
@@ -386,7 +386,7 @@ export const BracketView = () => {
                 </div>
 
                 {/* Standing Table with fixed heights & columns */}
-                <div className="overflow-x-auto mb-6 shrink-0 h-[165px] overflow-hidden">
+                <div className="overflow-x-auto no-scrollbar mb-6 shrink-0 h-[165px] overflow-hidden">
                   <table className="w-full text-left text-[11px] table-fixed">
                     <thead>
                       <tr className="border-b border-hairline/40 text-ink-subtle font-semibold bg-canvas/30">
@@ -478,7 +478,7 @@ export const BracketView = () => {
             </div>
           </div>
         ) : (
-          <div className="flex-1 overflow-auto pt-8 px-8 pb-12 scrollbar-hidden translate-z-0 will-change-transform">
+          <div className="flex-1 overflow-auto pt-8 px-8 pb-12 no-scrollbar translate-z-0 will-change-transform">
             {/* 8강 Championship Knockout Tree Layout (QF -> SF -> GF -> CHAMPION) */}
             <div className="glass-panel p-8 rounded-2xl border border-hairline/60 bg-[#0d1013] max-w-[1240px] mx-auto mb-6">
               
@@ -644,24 +644,24 @@ export const BracketView = () => {
                             <div className="relative group">
                               <div className="absolute inset-0 bg-primary blur-3xl opacity-20 animate-pulse"></div>
                               
-                              {/* Arena Champion Fire Particles */}
-                              <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden opacity-70">
-                                {[...Array(30)].map((_, i) => {
+                              {/* Arena Champion Fire Particles - Higher density and better overflow handling */}
+                              <div className="absolute -inset-10 z-0 pointer-events-none overflow-hidden opacity-90">
+                                {[...Array(60)].map((_, i) => {
                                   const colors = ['bg-primary', 'bg-yellow-300', 'bg-white', 'bg-orange-400'];
                                   const color = colors[Math.floor(Math.random() * colors.length)];
-                                  const size = 0.5 + Math.random() * 2;
+                                  const size = 0.5 + Math.random() * 2.5;
                                   
                                   return (
                                     <div 
                                       key={i}
-                                      className={`absolute rounded-full blur-[0.5px] animate-fire-particle ${color}`}
+                                      className={`absolute rounded-full blur-[0.6px] animate-fire-particle ${color}`}
                                       style={{ 
                                         width: `${size}px`,
                                         height: `${size}px`,
-                                        left: `${-5 + Math.random() * 110}%`, 
-                                        top: `${40 + Math.random() * 80}%`,
-                                        '--duration': `${0.8 + Math.random() * 2}s`,
-                                        animationDelay: `${Math.random() * 4}s`
+                                        left: `${-20 + Math.random() * 140}%`, 
+                                        top: `${30 + Math.random() * 90}%`,
+                                        '--duration': `${0.6 + Math.random() * 2}s`,
+                                        animationDelay: `${Math.random() * 5}s`
                                       } as React.CSSProperties}
                                     ></div>
                                   );
