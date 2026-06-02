@@ -88,7 +88,7 @@ export const BracketView = () => {
           </h1>
           <p className="text-ink-subtle text-xs">
             {isHybrid 
-              ? '조별리그를 3개 조로 편성하여 예선 리그를 가로로 기획하고, 상위 및 와일드카드로 구성된 8강 본선 단계로 연결합니다.' 
+              ? '조별리그를 3개 조로 구성하고, 상위 8개팀이 8강 토너먼트로 연결됩니다.' 
               : '토너먼트 대형 대진 카드를 클릭하여 챔피언십 경기를 기획하세요.'}
           </p>
         </div>
@@ -105,7 +105,7 @@ export const BracketView = () => {
             title={!canShuffle ? "경기 데이터 및 세트 승패 이력이 있어 섞을 수 없습니다. 대진 초기화를 먼저 실행하세요." : "처음 참가 조 및 팀을 랜덤하게 재분배합니다."}
           >
             <Shuffle className="w-4 h-4" />
-            {isHybrid ? '조별 대진 무작위 섞기' : '대진 섞기'}
+            {isHybrid ? '대전 섞기' : '대진 섞기'}
           </button>
 
           <button 
@@ -113,7 +113,7 @@ export const BracketView = () => {
             className="flex items-center gap-2 px-4 py-2 rounded-md text-[13px] font-bold transition-all cursor-pointer bg-surface-2 border border-hairline/60 hover:bg-surface-3 text-ink hover:text-primary-hover hover:border-primary/50"
           >
             <RotateCcw className="w-4 h-4 text-ink-subtle" />
-            대진 초기화
+            초기화
           </button>
         </div>
       </header>
@@ -460,22 +460,17 @@ export const BracketView = () => {
             </div>
           </div>
         ) : (
-          // 8강 Championship Knockout Tree Layout (QF -> SF -> GF)
-          <div className="flex-1 overflow-auto pt-4 px-8 pb-8 scrollbar-hidden">
-            <div className="glass-panel p-6 rounded-2xl border border-hairline/60 bg-[#0d1013] max-w-5xl mx-auto mb-6">
-              <div className="mb-4 border-b border-hairline/30 pb-3">
-                <h2 className="text-lg font-titular text-[#f59e0b] font-extrabold flex items-center gap-2">
-                  <Award className="w-5 h-5 text-[#f59e0b]" /> 본선 8강 토너먼트 (Championship Bracket)
-                </h2>
-              </div>
-
-              {/* Robust 3-Tier Line layout (QF -> SF -> GF) */}
-              <div className="flex flex-row justify-between items-stretch min-w-[800px] py-2 gap-8 relative">
+          // 8강 Championship Knockout Tree Layout (QF -> SF -> GF -> CHAMPION)
+          <div className="flex-1 overflow-auto pt-8 px-8 pb-12 scrollbar-hidden">
+            <div className="glass-panel p-8 rounded-2xl border border-hairline/60 bg-[#0d1013] max-w-[1240px] mx-auto mb-6">
+              
+              {/* Robust 4-Tier layout (QF -> SF -> GF -> CHAMPION) */}
+              <div className="flex flex-row justify-between items-stretch py-2 gap-12 relative">
                 
                 {/* Tier 1: QF (8강전) */}
                 <div className="flex flex-col justify-between gap-12 w-64 relative z-10">
-                  <div className="text-[10px] text-center font-mono tracking-widest text-ink-subtle font-bold border-b border-hairline/20 pb-1 mb-2">
-                    준준결승 (8강전 BO7)
+                  <div className="text-[10px] text-center font-mono tracking-widest text-ink-subtle font-bold border-b border-hairline/20 pb-1.5 mb-2">
+                    준준결승 (8강 BO7)
                   </div>
                   {[1, 2, 3, 4].map(idx => {
                     const qfId = `QF_${idx}`;
@@ -522,8 +517,8 @@ export const BracketView = () => {
 
                 {/* Tier 2: SF (준결승전) */}
                 <div className="flex flex-col justify-around w-64 relative z-10 py-12">
-                  <div className="text-[10px] text-center font-mono tracking-widest text-[#a78bfa] font-bold border-b border-[#7c3aed]/20 pb-1 mb-2">
-                    준결승전 (4강전 BO7)
+                  <div className="text-[10px] text-center font-mono tracking-widest text-[#a78bfa] font-bold border-b border-[#7c3aed]/20 pb-1.5 mb-2">
+                    준결승전 (4강 BO7)
                   </div>
                   {[1, 2].map(idx => {
                     const sfId = `SF_${idx}`;
@@ -569,8 +564,8 @@ export const BracketView = () => {
                 </div>
 
                 {/* Tier 3: GF (결승전) */}
-                <div className="flex flex-col justify-center w-64 relative z-10 py-16">
-                  <div className="text-[10px] text-center font-mono tracking-widest text-[#f59e0b] font-bold border-b border-[#f59e0b]/20 pb-1 mb-4">
+                <div className="flex flex-col justify-center w-72 relative z-10 py-16">
+                  <div className="text-[11px] text-center font-mono tracking-widest text-[#f59e0b] font-bold border-b border-[#f59e0b]/20 pb-2 mb-6">
                     그랜드 파이널 (결승전 BO7)
                   </div>
                   {(() => {
@@ -580,40 +575,86 @@ export const BracketView = () => {
                     const isClickable = hasBoth && gf.status !== 'completed';
                     
                     return (
-                      <div className="relative flex flex-col justify-center animate-fade-in">
-                        <div className="absolute left-[-32px] top-1/2 w-[32px] border-b-2 border-hairline/40 pointer-events-none" />
+                      <div className="relative flex flex-col justify-center animate-fade-in group">
+                        <div className="absolute left-[-48px] top-1/2 w-[48px] border-b-2 border-hairline/40 pointer-events-none" />
                         <div 
                           onClick={() => isClickable && setSelectedMatchId(gfId)}
-                          className={`glass-panel p-4 rounded-xl border border-[#f59e0b]/60 bg-gradient-to-r from-[#171109]/30 to-transparent transition-all flex flex-col gap-2.5 ${
+                          className={`glass-panel p-5 rounded-2xl border-2 border-[#f59e0b]/60 bg-gradient-to-br from-[#171109]/40 to-transparent transition-all flex flex-col gap-3 shadow-[0_0_30px_rgba(245,158,11,0.05)] ${
                             isClickable 
-                              ? 'cursor-pointer hover:border-[#f59e0b] hover:shadow-[0_0_20px_rgba(245,158,11,0.25)] active:scale-[0.98]' 
-                              : 'opacity-85'
-                          } ${gf.status === 'completed' ? 'border-success bg-success/5' : ''}`}
+                              ? 'cursor-pointer hover:border-[#f59e0b] hover:shadow-[0_0_35px_rgba(245,158,11,0.25)] active:scale-[0.98]' 
+                              : 'opacity-90'
+                          } ${gf.status === 'completed' ? 'border-success bg-success/5 shadow-[0_0_40px_rgba(16,185,129,0.15)]' : ''}`}
                         >
-                          <div className="flex items-center justify-between text-xs py-0.5">
-                            <span className={`font-bold truncate max-w-[150px] ${gf.winnerId === gf.team1Id ? 'text-[#f59e0b]' : 'text-white'}`}>
+                          <div className="flex items-center justify-between text-sm py-1">
+                            <span className={`font-black truncate max-w-[180px] tracking-tight ${gf.winnerId === gf.team1Id ? 'text-[#f59e0b]' : 'text-slate-200'}`}>
                               {getTeamDisplayName(gfId, gf.team1Id, 1)}
                             </span>
-                            <span className="font-mono bg-black/60 px-2 py-0.5 rounded border border-hairline/25">{gf.team1Score}</span>
+                            <span className="font-mono bg-black/70 px-2.5 py-1 rounded-md border border-[#f59e0b]/20 min-w-[32px] text-center">{gf.team1Score}</span>
                           </div>
-                          <div className="flex items-center justify-between text-xs py-0.5">
-                            <span className={`font-bold truncate max-w-[150px] ${gf.winnerId === gf.team2Id ? 'text-[#f59e0b]' : 'text-white'}`}>
+                          <div className="flex items-center justify-center opacity-30 select-none">
+                            <div className="h-px w-full bg-gradient-to-r from-transparent via-[#f59e0b] to-transparent"></div>
+                            <span className="px-3 text-[10px] font-black font-titular italic">VS</span>
+                            <div className="h-px w-full bg-gradient-to-r from-transparent via-[#f59e0b] to-transparent"></div>
+                          </div>
+                          <div className="flex items-center justify-between text-sm py-1">
+                            <span className={`font-black truncate max-w-[180px] tracking-tight ${gf.winnerId === gf.team2Id ? 'text-[#f59e0b]' : 'text-slate-200'}`}>
                               {getTeamDisplayName(gfId, gf.team2Id, 2)}
                             </span>
-                            <span className="font-mono bg-black/60 px-2 py-0.5 rounded border border-hairline/25">{gf.team2Score}</span>
+                            <span className="font-mono bg-black/70 px-2.5 py-1 rounded-md border border-[#f59e0b]/20 min-w-[32px] text-center">{gf.team2Score}</span>
                           </div>
                         </div>
 
-                        {gf.status === 'completed' && gf.winnerId && (
-                          <div className="mt-6 text-center">
-                            <span className="bg-primary text-white text-[10px] font-bold px-4 py-1.5 rounded border border-primary/50 uppercase tracking-widest shadow-[0_0_20px_rgba(225,29,72,0.5)]">
-                              최종 우승: {getTeamName(gf.winnerId)}
-                            </span>
-                          </div>
-                        )}
+                        {/* Connection to Champion */}
+                        <div className="absolute right-[-48px] top-1/2 w-[48px] border-b-2 border-[#f59e0b]/40 pointer-events-none" />
                       </div>
                     );
                   })()}
+                </div>
+
+                {/* Tier 4: CHAMPION AREA */}
+                <div className="flex flex-col justify-center w-72 relative z-10 py-16">
+                   <div className="text-[11px] text-center font-mono tracking-widest text-primary font-bold border-b border-primary/20 pb-2 mb-6">
+                    격투 철권 아레나 챔피언
+                  </div>
+                  <div className="flex flex-col items-center justify-center">
+                    {(() => {
+                      const gf = state.matches.find(m => m.id === 'GF_1')!;
+                      const winnerId = gf?.winnerId;
+                      if (winnerId) {
+                        return (
+                          <div className="flex flex-col items-center animate-bounce-in">
+                            <div className="relative group">
+                              <div className="absolute inset-0 bg-primary blur-3xl opacity-20 animate-pulse"></div>
+                              <div className="relative glass-panel bg-gradient-to-b from-[#f59e0b]/20 to-[#1a1c22] border-2 border-[#f59e0b] p-8 rounded-[2.5rem] flex flex-col items-center gap-4 shadow-[0_0_50px_rgba(245,158,11,0.3)]">
+                                <div className="bg-gradient-to-tr from-[#f59e0b] to-yellow-200 p-4 rounded-full shadow-lg">
+                                  <Medal className="w-10 h-10 text-[#140507]" />
+                                </div>
+                                <div className="text-center">
+                                  <div className="text-[10px] font-black text-primary tracking-widest uppercase mb-1">CHAMPION</div>
+                                  <div className="text-2xl font-titular font-extrabold text-[#f59e0b] whitespace-nowrap drop-shadow-lg">
+                                    {getTeamName(winnerId)}
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                            <div className="mt-8 flex gap-1">
+                              {[1, 2, 3].map(i => (
+                                <div key={i} className="w-1 h-8 bg-gradient-to-b from-[#f59e0b]/40 to-transparent rounded-full"></div>
+                              ))}
+                            </div>
+                          </div>
+                        );
+                      }
+                      return (
+                        <div className="opacity-20 flex flex-col items-center gap-4 grayscale">
+                          <div className="glass-panel border-2 border-hairline p-8 rounded-[2.5rem] flex flex-col items-center">
+                             <Medal className="w-12 h-12 text-ink-tertiary mb-3" />
+                             <span className="text-xs font-bold text-ink-tertiary uppercase tracking-tighter">아레나 대기 중</span>
+                          </div>
+                        </div>
+                      );
+                    })()}
+                  </div>
                 </div>
 
               </div>

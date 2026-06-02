@@ -788,6 +788,7 @@ const TournamentContext = createContext<{
 export const TournamentProvider = ({ children }: { children: ReactNode }) => {
   const [state, dispatch] = useReducer(tournamentReducer, initialState);
   const lastServerStateRef = useRef<string>('');
+  const hasSyncedRef = useRef<boolean>(false);
 
   // 1. Initial Load & Synchronization
   useEffect(() => {
@@ -797,24 +798,32 @@ export const TournamentProvider = ({ children }: { children: ReactNode }) => {
       try {
         const response = await fetch('/api/tournament-state');
         const result = await response.json();
+        
         if (active) {
           if (result.success && result.data) {
             const serverStateStr = JSON.stringify(result.data);
             lastServerStateRef.current = serverStateStr;
             dispatch({ type: 'SYNC_FROM_SERVER', payload: result.data });
+            hasSyncedRef.current = true;
           } else {
-            // Server has no state yet, let's push our state
+            // Server has no state yet, we are the first one or server was reset
+            // We can now safely push our local state to the server
             const currentStr = JSON.stringify(state);
             lastServerStateRef.current = currentStr;
+            
             await fetch('/api/tournament-state', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ state }),
             });
+            hasSyncedRef.current = true;
           }
         }
       } catch (err) {
         console.warn('Failed to perform initial server synchronization:', err);
+        // Even if failed, we mark as synced after attempt to allow local changes to flow if needed
+        // but strictly we might want to retry. For now, let's allow it to proceed.
+        hasSyncedRef.current = true;
       }
     }
 
@@ -825,13 +834,17 @@ export const TournamentProvider = ({ children }: { children: ReactNode }) => {
     };
   }, []);
 
-  // 2. State-change listener to push up state cleanly (without loops)
+  // 2. State-change listener to push up state cleanly
   useEffect(() => {
+    // Save to localStorage
     try {
       window.localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(state));
     } catch (e) {
       console.warn("localStorage save failed:", e);
     }
+
+    // Only push to server if we have successfully synced from it at least once (to avoid overwriting with defaults)
+    if (!hasSyncedRef.current) return;
 
     const currentStr = JSON.stringify(state);
     if (currentStr && currentStr !== lastServerStateRef.current) {
@@ -847,9 +860,12 @@ export const TournamentProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [state]);
 
-  // 3. Periodic polling to keep other clients updated in real-time
+  // 3. Periodic polling to keep other clients updated
   useEffect(() => {
     const handle = setInterval(async () => {
+      // Only poll if we have finished the initial sync attempt
+      if (!hasSyncedRef.current) return;
+
       try {
         const response = await fetch('/api/tournament-state');
         const result = await response.json();
@@ -863,7 +879,7 @@ export const TournamentProvider = ({ children }: { children: ReactNode }) => {
       } catch (err) {
         // Silent catch for intermittent network issues
       }
-    }, 4000);
+    }, 3000);
 
     return () => clearInterval(handle);
   }, []);
