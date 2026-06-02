@@ -1,0 +1,34 @@
+{
+  "entities": {
+    "Tournament": {
+      "title": "Tournament",
+      "description": "The complete tournament state including settings, teams, matches, and currentMatchId to sync in real-time across all users.",
+      "type": "object",
+      "properties": {
+        "settings": {
+          "type": "object",
+          "description": "The tournament settings."
+        },
+        "teams": {
+          "type": "array",
+          "description": "List of participating teams and their players."
+        },
+        "matches": {
+          "type": "array",
+          "description": "List of matches played or scheduled."
+        },
+        "currentMatchId": {
+          "type": "string",
+          "description": "Id of the currently active/selected match, if any."
+        }
+      },
+      "required": ["settings", "teams", "matches"]
+    }
+  },
+  "firestore": {
+    "tournaments/{tournamentId}": {
+      "schema": "Tournament",
+      "description": "Collection of tournaments"
+    }
+  }
+}

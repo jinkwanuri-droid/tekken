@@ -1,0 +1,70 @@
+@import "tailwindcss";
+
+@theme {
+  --color-canvas: #06080a;
+  --color-surface-1: rgba(255,255,255,0.03);
+  --color-surface-2: rgba(255,255,255,0.05);
+  --color-surface-3: rgba(12,15,18,1);
+  --color-hairline: rgba(255,255,255,0.1);
+  --color-hairline-strong: rgba(255,255,255,0.2);
+  
+  --color-primary: #e11d48;
+  --color-primary-hover: #f43f5e;
+  --color-primary-focus: #be123c;
+  
+  --color-ink: #ffffff;
+  --color-ink-muted: #e2e8f0;
+  --color-ink-subtle: #94a3b8;
+  --color-ink-tertiary: #64748b;
+  
+  --color-success: #0ea5e9;
+  --color-danger: #e11d48;
+
+  --font-sans: "SUIT", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, monospace;
+
+  /* Custom typography scaling */
+  --text-display-xl: 80px;
+  --text-display-lg: 56px;
+  --text-display-md: 40px;
+  --text-headline: 28px;
+  --text-card-title: 22px;
+  --text-subhead: 20px;
+}
+
+@layer utilities {
+  .glass-panel {
+    @apply bg-surface-2 backdrop-blur-[12px] border border-hairline rounded-lg shadow-none;
+  }
+  .glass-button {
+    @apply bg-transparent hover:bg-surface-2 border border-hairline rounded text-[13px] transition-all flex items-center justify-center gap-2;
+  }
+  .glass-input {
+    @apply bg-surface-1 border border-hairline focus:border-primary focus:ring-1 focus:ring-primary rounded px-3 py-2 text-ink outline-none transition-all text-[13px] shadow-none w-full;
+  }
+  .glass-input option {
+    @apply bg-canvas text-ink;
+  }
+  .btn-accent {
+    @apply bg-primary text-white border-none rounded font-semibold text-[13px] hover:brightness-110 flex items-center justify-center gap-2 transition-all;
+  }
+  .font-titular {
+    letter-spacing: 1px;
+    font-weight: 800;
+  }
+  .scrollbar-hidden::-webkit-scrollbar {
+    display: none;
+  }
+  .scrollbar-hidden {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .active-match {
+    @apply border border-primary shadow-[0_0_15px_rgba(225,29,72,0.2)];
+  }
+  .match-box {
+    @apply border-l-[3px] border-l-primary;
+  }
+}
+
+
