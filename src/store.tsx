@@ -1,5 +1,32 @@
 import { createContext, useContext, useReducer, useEffect, useRef, ReactNode, Dispatch } from 'react';
+import { initializeApp, getApp, getApps } from 'firebase/app';
+import { getFirestore, doc, onSnapshot, setDoc } from 'firebase/firestore';
 import { TournamentState, Team, MatchItem, TournamentSettings, Player, MatchStatus } from './types';
+import firebaseConfig from '../firebase-applet-config.json';
+
+// Initialize Firebase client directly for real-time sync with high-performance and low-read footprint
+const getFirebaseConfig = () => {
+  const envConfig = {
+    apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+    authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+    projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+    storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+    messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+    appId: import.meta.env.VITE_FIREBASE_APP_ID,
+    firestoreDatabaseId: import.meta.env.VITE_FIREBASE_FIRESTORE_DATABASE_ID || "(default)",
+  };
+
+  if (envConfig.apiKey) {
+    return envConfig;
+  }
+  return firebaseConfig;
+};
+
+const activeConfig = getFirebaseConfig();
+const app = getApps().length === 0 ? initializeApp(activeConfig) : getApp();
+const db = getFirestore(app, activeConfig.firestoreDatabaseId || "(default)");
+const TOURNAMENT_DOC_PATH = "tournaments/singleton";
+
 
 // Helper to generate UUIDs simply
 export const CHARACTER_LIST = [
@@ -856,42 +883,64 @@ export const TournamentProvider = ({ children }: { children: ReactNode }) => {
   const lastServerStateRef = useRef<string>('');
   const hasSyncedRef = useRef<boolean>(false);
 
-  // 1. Initial Load & Synchronization
+  // 1. Initial Load & Synchronization (Direct Firestore real-time listener)
   useEffect(() => {
     let active = true;
+    let fallbackInterval: NodeJS.Timeout | null = null;
 
-    async function syncInitial() {
-      try {
-        const response = await fetch('/api/tournament-state');
-        const result = await response.json();
+    const docRef = doc(db, TOURNAMENT_DOC_PATH);
+    const unsubscribe = onSnapshot(docRef, (docSnap) => {
+      if (!active) return;
+      
+      if (docSnap.exists()) {
+        const data = docSnap.data() as TournamentState;
+        const serverStateStr = JSON.stringify(data);
         
-        if (active) {
-          if (result.success && result.data) {
-            const serverStateStr = JSON.stringify(result.data);
-            lastServerStateRef.current = serverStateStr;
-            dispatch({ type: 'SYNC_FROM_SERVER', payload: result.data });
-            hasSyncedRef.current = true;
-          } else {
-            // Server has no state yet or failed to load.
-            // We mark as synced so that our local state (reloaded from localStorage) can be pushed to server.
-            hasSyncedRef.current = true;
-          }
+        if (serverStateStr !== lastServerStateRef.current) {
+          lastServerStateRef.current = serverStateStr;
+          dispatch({ type: 'SYNC_FROM_SERVER', payload: data });
         }
-      } catch (err) {
-        console.warn('Failed to perform initial server synchronization:', err);
-        // Even if failed, we mark as synced after attempt to allow local changes to flow if needed
-        hasSyncedRef.current = true;
       }
-    }
+      hasSyncedRef.current = true;
+    }, (error) => {
+      console.warn("Direct Firestore read subscription failed. Enacting REST API continuous fallback...", error);
+      
+      // Mark as synced so client-side changes can flow
+      hasSyncedRef.current = true;
 
-    syncInitial();
+      // Start fallback polling since onSnapshot didn't work
+      if (active && !fallbackInterval) {
+        const fallbackPoll = async () => {
+          try {
+            const response = await fetch('/api/tournament-state');
+            const result = await response.json();
+            if (active && result.success && result.data) {
+              const serverStateStr = JSON.stringify(result.data);
+              if (serverStateStr !== lastServerStateRef.current) {
+                lastServerStateRef.current = serverStateStr;
+                dispatch({ type: 'SYNC_FROM_SERVER', payload: result.data });
+              }
+            }
+          } catch (e) {
+            // Silent catch
+          }
+        };
+
+        fallbackPoll();
+        fallbackInterval = setInterval(fallbackPoll, 4000);
+      }
+    });
 
     return () => {
       active = false;
+      unsubscribe();
+      if (fallbackInterval) {
+        clearInterval(fallbackInterval);
+      }
     };
   }, []);
 
-  // 2. State-change listener to push up state cleanly
+  // 2. State-change listener to push up state cleanly (Direct Firestore setDoc)
   useEffect(() => {
     // Save to localStorage
     try {
@@ -912,39 +961,23 @@ export const TournamentProvider = ({ children }: { children: ReactNode }) => {
     if (currentStr && currentStr !== lastServerStateRef.current) {
       lastServerStateRef.current = currentStr;
       
-      fetch('/api/tournament-state', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ state }),
+      const docRef = doc(db, TOURNAMENT_DOC_PATH);
+      setDoc(docRef, {
+        ...state,
+        updatedAt: new Date().toISOString()
       }).catch(err => {
-        console.warn('Failed to sync state to server:', err);
+        console.warn('Direct Firestore write failed, falling back to REST API write...', err);
+        
+        fetch('/api/tournament-state', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ state }),
+        }).catch(proxyErr => {
+          console.error('State persistence failed completely:', proxyErr);
+        });
       });
     }
   }, [state]);
-
-  // 3. Periodic polling to keep other clients updated
-  useEffect(() => {
-    const handle = setInterval(async () => {
-      // Only poll if we have finished the initial sync attempt
-      if (!hasSyncedRef.current) return;
-
-      try {
-        const response = await fetch('/api/tournament-state');
-        const result = await response.json();
-        if (result.success && result.data) {
-          const serverStateStr = JSON.stringify(result.data);
-          if (serverStateStr !== lastServerStateRef.current) {
-            lastServerStateRef.current = serverStateStr;
-            dispatch({ type: 'SYNC_FROM_SERVER', payload: result.data });
-          }
-        }
-      } catch (err) {
-        // Silent catch for intermittent network issues
-      }
-    }, 3000);
-
-    return () => clearInterval(handle);
-  }, []);
 
   return (
     <TournamentContext.Provider value={{ state, dispatch }}>
