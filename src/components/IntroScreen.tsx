@@ -42,7 +42,7 @@ export function IntroScreen({ onEnter }: IntroScreenProps) {
     const colors = ['bg-primary', 'bg-yellow-400', 'bg-white', 'bg-orange-500'];
     return [...Array(140)].map((_, i) => {
       const color = colors[Math.floor(Math.random() * colors.length)];
-      const size = 1.2 + Math.random() * 5.0; // Dynamic size variety from 1.2px to 6.2px
+      const size = 0.8 + Math.random() * 3.2; // Optimized smaller size variety (70% of previous size for fine embers)
       const startX = -10 - Math.random() * 25;
       const top = Math.random() * 100;
       const duration = 3.5 + Math.random() * 5;
@@ -76,18 +76,29 @@ export function IntroScreen({ onEnter }: IntroScreenProps) {
       <style>{`
         @keyframes fire-particle-left {
           0% { 
-            transform: translateX(0) translateY(0) scale(1.4); 
+            transform: translateX(0) translateY(0) scale(1.1); 
             opacity: 0; 
-            filter: blur(1.5px) brightness(3); 
+            filter: blur(1px) brightness(3); 
           }
           15% { 
             opacity: 1; 
-            transform: translateX(20vw) translateY(-15px) scale(1.1); 
+            transform: translateX(20vw) translateY(-25px) scale(1.0); 
+            filter: blur(0.8px) brightness(2.6);
           }
-          60% { 
-            transform: translateX(75vw) translateY(-60px) scale(0.7); 
-            opacity: 0.8; 
-            filter: blur(1.2px) brightness(2); 
+          35% {
+            opacity: 0.9;
+            transform: translateX(45vw) translateY(-10px) scale(0.8);
+            filter: blur(1.2px) brightness(3.1);
+          }
+          55% {
+            opacity: 0.85;
+            transform: translateX(70vw) translateY(-45px) scale(0.9);
+            filter: blur(0.9px) brightness(2.1);
+          }
+          75% {
+            opacity: 0.95;
+            transform: translateX(95vw) translateY(-30px) scale(0.65);
+            filter: blur(1.3px) brightness(2.7);
           }
           100% { 
             transform: translateX(120vw) translateY(-150px) scale(0.15); 

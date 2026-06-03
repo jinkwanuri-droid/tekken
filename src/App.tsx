@@ -134,13 +134,13 @@ function AppContent() {
             {/* Shimmering highlights */}
             <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent shimmer-effect"></div>
             
-            {/* Spark Particles - High density and larger glowing dimensions */}
+            {/* Spark Particles - High density and fine glowing dimensions */}
             <div className="absolute inset-0 overflow-hidden opacity-90">
               <div className="fire-particles-container absolute inset-0">
                 {[...Array(65)].map((_, i) => {
                   const colors = ['bg-primary', 'bg-yellow-300', 'bg-white', 'bg-orange-400'];
                   const color = colors[Math.floor(Math.random() * colors.length)];
-                  const size = 1.2 + Math.random() * 4.5; // Upgraded sizes (1.2px ~ 5.7px)
+                  const size = 0.8 + Math.random() * 2.8; // Reduced sizes (0.8px ~ 3.6px) - 70% scaling
                   const startX = -10 - Math.random() * 25;
                   const top = Math.random() * 100;
                   const driftY = -20 - Math.random() * 50;

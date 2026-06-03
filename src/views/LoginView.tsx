@@ -15,7 +15,7 @@ export const LoginView = ({ onLogin, onClose }: LoginViewProps) => {
     const colors = ['bg-primary', 'bg-yellow-400', 'bg-white', 'bg-orange-500'];
     return [...Array(140)].map((_, i) => {
       const color = colors[Math.floor(Math.random() * colors.length)];
-      const size = 1.2 + Math.random() * 5.0; // Upgraded sizes (1.2px ~ 6.2px)
+      const size = 0.8 + Math.random() * 3.2; // Optimized fine sizes (0.8px ~ 4.0px) - 70% ratio
       const startX = -15 - Math.random() * 25; // Start off-screen left
       const top = Math.random() * 100;
       const duration = 4 + Math.random() * 5.5;

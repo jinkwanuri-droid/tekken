@@ -27,7 +27,7 @@ export const BracketView = ({ isAdmin }: { isAdmin: boolean }) => {
     return [...Array(110)].map((_, i) => ({
       id: i,
       color: colors[Math.floor(Math.random() * colors.length)],
-      size: 1.2 + Math.random() * 5.2, // Upgraded size variety (1.2px ~ 6.4px)
+      size: 0.8 + Math.random() * 3.5, // Reduced size variety (0.8px ~ 4.3px) - 70% scaling
       left: `${-20 - Math.random() * 30}%`, // Start off-screen left
       top: `${Math.random() * 100}%`,
       duration: `${3.5 + Math.random() * 5}s`,

@@ -41,18 +41,29 @@
 
 @keyframes fire-particle-right-flow {
   0% { 
-    transform: translateX(0) translateY(0) scale(1.4); 
+    transform: translateX(0) translateY(0) scale(1.1); 
     opacity: 0; 
-    filter: blur(1.2px) brightness(3); 
+    filter: blur(1px) brightness(3); 
   }
   15% { 
     opacity: 1; 
-    transform: translateX(15vw) translateY(calc(var(--drift-y, -50px) * 0.15)) scale(1.1); 
+    transform: translateX(15vw) translateY(calc(var(--drift-y, -50px) * 0.18 + 12px)) scale(1.0); 
+    filter: blur(0.8px) brightness(2.6);
   }
-  60% { 
-    transform: translateX(70vw) translateY(calc(var(--drift-y, -50px) * 0.6)) scale(0.7); 
-    opacity: 0.8; 
-    filter: blur(0.8px) brightness(2.2); 
+  35% {
+    opacity: 0.9;
+    transform: translateX(45vw) translateY(calc(var(--drift-y, -50px) * 0.38 - 15px)) scale(0.8);
+    filter: blur(1.2px) brightness(3.1);
+  }
+  55% {
+    opacity: 0.85;
+    transform: translateX(70vw) translateY(calc(var(--drift-y, -50px) * 0.58 + 12px)) scale(0.9);
+    filter: blur(0.9px) brightness(2.1);
+  }
+  75% {
+    opacity: 0.95;
+    transform: translateX(95vw) translateY(calc(var(--drift-y, -50px) * 0.78 - 15px)) scale(0.65);
+    filter: blur(1.3px) brightness(2.7);
   }
   100% { 
     transform: translateX(115vw) translateY(var(--drift-y, -120px)) scale(0.15); 

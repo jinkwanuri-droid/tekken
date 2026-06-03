@@ -188,7 +188,7 @@ export const DashboardView = () => {
     return [...Array(85)].map((_, i) => ({
       id: i,
       color: colors[Math.floor(Math.random() * colors.length)],
-      size: 1.2 + Math.random() * 4.8, // Enhanced sizes (1.2px ~ 6.0px)
+      size: 0.8 + Math.random() * 3.2, // Tailored fine sizes (0.8px ~ 4.0px) - 70% scaling
       left: `${-20 - Math.random() * 30}%`, // Start off-screen left
       top: `${Math.random() * 100}%`,
       duration: `${4.5 + Math.random() * 6}s`,
