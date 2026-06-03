@@ -1,17 +1,7 @@
 import React, { useState } from 'react';
-import { useTournament } from '../store';
+import { useTournament, CHARACTER_LIST } from '../store';
 import { Play, CheckCircle2, ChevronRight, Trophy, X, RotateCcw } from 'lucide-react';
 import { Player, Team, MatchSet } from '../types';
-
-const CHARACTER_LIST = [
-  "아수세나", "빅터", "레이나", "카자마 준", "니나 윌리엄스", 
-  "미시마 카즈야", "카자마 진", "폴 피닉스", "마샬 로우", "잭-8", 
-  "라스 알렉산더슨", "링 샤오유", "리로이 스미스", "아스카 카자마", 
-  "에밀리 드 로슈포르(릴리)", "브라이언 퓨리", "화랑", "클라우디오 세라피노", 
-  "레이븐", "레오 클리젠", "스티브 폭스", "쿠마", "요시미츠", "샤힌", 
-  "세르게이 드라구노프", "펭 웨이", "팬더", "리 차오롱", "알리사 보스코노비치", 
-  "자피나", "데빌 진", "에디 골드"
-];
 
 const CharacterSelect = ({ value, onChange, placeholder, disabled }: { value: string; onChange: (v: string) => void; placeholder: string; disabled?: boolean }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -115,10 +105,10 @@ export const MatchModal = ({ matchId, onClose, isAdmin }: MatchModalProps) => {
     );
   }
 
-  const handleSubmitResult = (setIndex: number, team1PlayerId: string, team2PlayerId: string, winnerTeamId: string, team1Character: string, team2Character: string) => {
+  const handleSubmitResult = (setIndex: number, team1PlayerId: string, team2PlayerId: string, winnerTeamId: string, team1Character: string, team2Character: string, team1Rounds: number, team2Rounds: number) => {
     dispatch({
       type: 'SUBMIT_SET_RESULT',
-      payload: { matchId: activeMatch.id, setIndex, team1PlayerId, team2PlayerId, winnerTeamId, team1Character, team2Character }
+      payload: { matchId: activeMatch.id, setIndex, team1PlayerId, team2PlayerId, winnerTeamId, team1Character, team2Character, team1Rounds, team2Rounds }
     });
   };
 
@@ -283,16 +273,18 @@ const SetRow = ({
   const [t2Player, setT2Player] = useState<string>(set.team2PlayerId || '');
   const [t1Char, setT1Char] = useState<string>(set.team1Character || '');
   const [t2Char, setT2Char] = useState<string>(set.team2Character || '');
+  const [t1Rounds, setT1Rounds] = useState<number>(set.team1Rounds || 0);
+  const [t2Rounds, setT2Rounds] = useState<number>(set.team2Rounds || 0);
 
   // Track the actual property values of our set props that we last used to populate local state.
-  // This allows us to ignore background synchronization updates (polling) that do not actually change
-  // the data in our current set or its previous dependent set.
   const lastPropsRef = React.useRef({
     id: set.id,
     team1PlayerId: set.team1PlayerId || '',
     team2PlayerId: set.team2PlayerId || '',
     team1Character: set.team1Character || '',
     team2Character: set.team2Character || '',
+    team1Rounds: set.team1Rounds || 0,
+    team2Rounds: set.team2Rounds || 0,
     isCurrent,
     prevSetWinnerId: prevSet?.winnerTeamId || null,
     prevSetT1Player: prevSet?.team1PlayerId || null,
@@ -305,6 +297,8 @@ const SetRow = ({
     const isT2PChanged = lastPropsRef.current.team2PlayerId !== (set.team2PlayerId || '');
     const isT1CChanged = lastPropsRef.current.team1Character !== (set.team1Character || '');
     const isT2CChanged = lastPropsRef.current.team2Character !== (set.team2Character || '');
+    const isT1RChanged = lastPropsRef.current.team1Rounds !== (set.team1Rounds || 0);
+    const isT2RChanged = lastPropsRef.current.team2Rounds !== (set.team2Rounds || 0);
     const isCurrentChanged = lastPropsRef.current.isCurrent !== isCurrent;
     const isPrevWinnerChanged = lastPropsRef.current.prevSetWinnerId !== (prevSet?.winnerTeamId || null);
     const isPrevT1Changed = lastPropsRef.current.prevSetT1Player !== (prevSet?.team1PlayerId || null);
@@ -316,6 +310,8 @@ const SetRow = ({
       isT2PChanged || 
       isT1CChanged || 
       isT2CChanged || 
+      isT1RChanged || 
+      isT2RChanged || 
       isCurrentChanged || 
       isPrevWinnerChanged || 
       isPrevT1Changed || 
@@ -326,16 +322,16 @@ const SetRow = ({
         setT2Player(set.team2PlayerId || '');
         setT1Char(set.team1Character || '');
         setT2Char(set.team2Character || '');
+        setT1Rounds(set.team1Rounds || 0);
+        setT2Rounds(set.team2Rounds || 0);
       } else {
-        // Only update local input if server genuinely pushed a completed/assigned value.
-        // This isolates transient client state modifications from blank resets.
         if (set.team1PlayerId) setT1Player(set.team1PlayerId);
         if (set.team2PlayerId) setT2Player(set.team2PlayerId);
         if (set.team1Character) setT1Char(set.team1Character);
-        if (set.team2Character) setT2Char(set.team2Character);
+        if (set.team1Rounds !== undefined) setT1Rounds(set.team1Rounds);
+        if (set.team2Rounds !== undefined) setT2Rounds(set.team2Rounds);
       }
       
-      // Auto-select winner if winners mode and no player is selected yet
       if (isCurrent && matchType === 'winners' && prevSet && prevSet.winnerTeamId) {
         if (prevSet.winnerTeamId === team1.id && !t1Player && !set.team1PlayerId) {
           setT1Player(prevSet.team1PlayerId || '');
@@ -347,20 +343,21 @@ const SetRow = ({
         }
       }
 
-      // Keep the ref in sync with latest processed props
       lastPropsRef.current = {
         id: set.id,
         team1PlayerId: set.team1PlayerId || '',
         team2PlayerId: set.team2PlayerId || '',
         team1Character: set.team1Character || '',
         team2Character: set.team2Character || '',
+        team1Rounds: set.team1Rounds || 0,
+        team2Rounds: set.team2Rounds || 0,
         isCurrent,
         prevSetWinnerId: prevSet?.winnerTeamId || null,
         prevSetT1Player: prevSet?.team1PlayerId || null,
         prevSetT2Player: prevSet?.team2PlayerId || null,
       };
     }
-  }, [set.id, set.team1PlayerId, set.team2PlayerId, set.team1Character, set.team2Character, isCurrent, matchType, prevSet, team1.id, team2.id]);
+  }, [set.id, set.team1PlayerId, set.team2PlayerId, set.team1Character, set.team2Character, set.team1Rounds, set.team2Rounds, isCurrent, matchType, prevSet, team1.id, team2.id]);
 
   const t1Available = team1.players.filter((p: Player) => isDeciderSet || !playedByTeam1.has(p.id) || (matchType === 'winners' && p.id === t1Player));
   const t2Available = team2.players.filter((p: Player) => isDeciderSet || !playedByTeam2.has(p.id) || (matchType === 'winners' && p.id === t2Player));
@@ -368,13 +365,14 @@ const SetRow = ({
   const t1PlayerName = team1.players.find((p: Player) => p.id === set.team1PlayerId)?.name || '';
   const t2PlayerName = team2.players.find((p: Player) => p.id === set.team2PlayerId)?.name || '';
 
-  const handleWin = (winnerId: string) => {
-    if (t1Player && t2Player) {
-      onSubmitResult(setIndex, t1Player, t2Player, winnerId, t1Char, t2Char);
+  const handleSaveSet = () => {
+    if (t1Player && t2Player && t1Char && t2Char) {
+      const winnerId = t1Rounds > t2Rounds ? team1.id : team2.id;
+      onSubmitResult(setIndex, t1Player, t2Player, winnerId, t1Char, t2Char, t1Rounds, t2Rounds);
     }
   };
 
-  const isFormValid = t1Player && t2Player && t1Char && t2Char;
+  const isFormValid = t1Player && t2Player && t1Char && t2Char && (t1Rounds >= 3 || t2Rounds >= 3) && (t1Rounds !== t2Rounds);
 
   return (
     <div 
@@ -404,7 +402,7 @@ const SetRow = ({
           </div>
         ) : (
           <div className="flex-1 flex items-center gap-3">
-            {/* Team 1 Controls: Player, Character, Win Button */}
+            {/* Team 1 Controls: Player, Character, Score */}
             <div className="flex-1 flex items-center gap-2">
                <div className="flex-grow min-w-[90px]">
                  <select 
@@ -427,34 +425,55 @@ const SetRow = ({
                  disabled={isLocked || !!set.winnerTeamId}
                />
 
-               <button 
-                 disabled={!isFormValid} 
-                 onClick={() => handleWin(team1.id)}
-                 className={`px-3 py-1.5 rounded text-xs font-semibold cursor-pointer shrink-0 transition-all ${
-                   isFormValid 
-                     ? 'bg-primary/90 text-white hover:bg-primary border border-primary/30 shadow-[0_0_8px_rgba(225,29,72,0.25)]' 
-                     : 'bg-surface-2 text-ink-subtle opacity-40 cursor-not-allowed'
-                 }`}
-               >
-                 승리
-               </button>
+               <div className="flex items-center gap-1 shrink-0">
+                  <input 
+                    type="text"
+                    inputMode="numeric"
+                    className="w-10 glass-input text-center text-xs font-bold text-white p-1"
+                    value={t1Rounds === 0 ? '' : t1Rounds}
+                    placeholder="0"
+                    onChange={e => {
+                      const val = e.target.value.replace(/[^0-9]/g, '').slice(-1);
+                      const num = parseInt(val) || 0;
+                      setT1Rounds(Math.min(3, num));
+                    }}
+                    disabled={isLocked || !!set.winnerTeamId}
+                  />
+               </div>
             </div>
             
-            <div className="px-1 shrink-0 text-[10px] font-bold text-primary select-none opacity-60">VS</div>
-
-            {/* Team 2 Controls: Win Button, Player, Character */}
-            <div className="flex-1 flex items-center gap-2">
+            <div className="px-1 shrink-0 flex flex-col items-center justify-center gap-1">
+               <div className="text-[10px] font-bold text-primary select-none opacity-60">VS</div>
                <button 
-                 disabled={!isFormValid} 
-                 onClick={() => handleWin(team2.id)}
-                 className={`px-3 py-1.5 rounded text-xs font-semibold cursor-pointer shrink-0 transition-all ${
-                   isFormValid 
-                     ? 'bg-primary/90 text-white hover:bg-primary border border-primary/30 shadow-[0_0_8px_rgba(225,29,72,0.25)]' 
-                     : 'bg-surface-2 text-ink-subtle opacity-40 cursor-not-allowed'
-                 }`}
-               >
-                 승리
-               </button>
+                  disabled={!isFormValid} 
+                  onClick={handleSaveSet}
+                  className={`px-3 py-1 rounded-[4px] text-[10px] font-black cursor-pointer shrink-0 transition-all ${
+                    isFormValid 
+                      ? 'bg-red-600 text-white hover:bg-red-500 border border-red-400 shadow-[0_0_12px_rgba(220,38,38,0.4)]' 
+                      : 'bg-surface-2 text-ink-subtle opacity-40 cursor-not-allowed'
+                  }`}
+                >
+                  SAVE
+                </button>
+            </div>
+
+            {/* Team 2 Controls: Score, Player, Character */}
+            <div className="flex-1 flex items-center gap-2 justify-end">
+               <div className="flex items-center gap-1 shrink-0">
+                  <input 
+                    type="text"
+                    inputMode="numeric"
+                    className="w-10 glass-input text-center text-xs font-bold text-white p-1"
+                    value={t2Rounds === 0 ? '' : t2Rounds}
+                    placeholder="0"
+                    onChange={e => {
+                      const val = e.target.value.replace(/[^0-9]/g, '').slice(-1);
+                      const num = parseInt(val) || 0;
+                      setT2Rounds(Math.min(3, num));
+                    }}
+                    disabled={isLocked || !!set.winnerTeamId}
+                  />
+               </div>
 
                <div className="flex-grow min-w-[90px]">
                  <select 
@@ -483,31 +502,30 @@ const SetRow = ({
         /* Completed view (One pure compact row) */
         <div className="flex-grow flex items-center justify-between px-2 text-xs">
             {/* Team 1 Finished */}
-            <div className={`flex-1 flex items-center gap-1.5 ${set.winnerTeamId === team1.id ? 'text-primary font-bold' : 'text-ink-subtle line-through opacity-50'}`}>
+            <div className={`flex-1 flex items-center gap-1.5 ${set.winnerTeamId === team1.id ? 'text-white font-black' : 'text-zinc-300 line-through opacity-90'}`}>
               <span className="text-md font-titular">{t1PlayerName}</span>
               {set.team1Character && (
-                <span className="text-[10px] font-mono text-ink-tertiary px-1.5 py-0.5 bg-black/20 rounded">
+                <span className={`text-[10px] font-mono px-1.5 py-0.5 bg-black/20 rounded ${set.winnerTeamId === team1.id ? 'text-white/80' : 'text-zinc-500'}`}>
                   {set.team1Character}
                 </span>
               )}
             </div>
             
-            {/* Versus complete status */}
+            {/* Versus complete status with Rounds Score */}
             <div className="shrink-0 flex items-center gap-2 px-4">
+               <span className={`text-xl font-mono font-black ${set.winnerTeamId === team1.id ? 'text-white' : 'text-zinc-500'}`}>{set.team1Rounds}</span>
                {set.winnerTeamId === team1.id ? (
-                 <ChevronRight className="w-4 h-4 text-primary animate-pulse" />
+                 <ChevronRight className="w-4 h-4 text-white animate-pulse" />
                ) : (
-                 <ChevronRight className="w-4 h-4 text-primary rotate-180 animate-pulse" />
+                 <ChevronRight className="w-4 h-4 text-zinc-500 rotate-180" />
                )}
-               <span className="text-[9px] font-mono px-2 py-0.5 bg-black/40 border border-hairline/25 rounded text-ink-muted leading-tight select-none">
-                 SET CLOSED
-               </span>
+               <span className={`text-xl font-mono font-black ${set.winnerTeamId === team2.id ? 'text-white' : 'text-zinc-500'}`}>{set.team2Rounds}</span>
             </div>
             
             {/* Team 2 Finished */}
-            <div className={`flex-1 flex items-center justify-end gap-1.5 text-right ${set.winnerTeamId === team2.id ? 'text-primary font-bold' : 'text-ink-subtle line-through opacity-50'}`}>
+            <div className={`flex-1 flex items-center justify-end gap-1.5 text-right ${set.winnerTeamId === team2.id ? 'text-white font-black' : 'text-zinc-300 line-through opacity-90'}`}>
               {set.team2Character && (
-                <span className="text-[10px] font-mono text-ink-tertiary px-1.5 py-0.5 bg-black/20 rounded">
+                <span className={`text-[10px] font-mono px-1.5 py-0.5 bg-black/20 rounded ${set.winnerTeamId === team2.id ? 'text-white/80' : 'text-zinc-500'}`}>
                   {set.team2Character}
                 </span>
               )}

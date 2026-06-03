@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useTournament } from '../store';
 import { 
   Users, 
@@ -11,11 +11,14 @@ import {
   Crown,
   HeartCrack,
   Dribbble,
-  Sparkles
+  Sparkles,
+  BarChart3
 } from 'lucide-react';
+import { PlayerDetailModal } from '../components/PlayerDetailModal';
 
 export const DashboardView = () => {
   const { state } = useTournament();
+  const [isPlayerDetailOpen, setIsPlayerDetailOpen] = useState(false);
   
   // Memoize all statistics to prevent expensive re-computation on every render
   const stats = useMemo(() => {
@@ -179,18 +182,18 @@ export const DashboardView = () => {
     };
   }, [state.teams, state.matches]);
 
-  // Memoize fire particles to prevent recreation (flowing smoothly left to right)
+  // Memoize fire particles with elevated density and sizes (flowing organic spark clouds)
   const winnerParticles = useMemo(() => {
     const colors = ['bg-primary', 'bg-yellow-300', 'bg-white', 'bg-orange-400'];
-    return [...Array(22)].map((_, i) => ({
+    return [...Array(85)].map((_, i) => ({
       id: i,
       color: colors[Math.floor(Math.random() * colors.length)],
-      size: 0.6 + Math.random() * 1.6,
-      left: `${-20 - Math.random() * 20}%`, // Start off-screen left
+      size: 1.2 + Math.random() * 4.8, // Enhanced sizes (1.2px ~ 6.0px)
+      left: `${-20 - Math.random() * 30}%`, // Start off-screen left
       top: `${Math.random() * 100}%`,
-      duration: `${4.5 + Math.random() * 5.5}s`,
-      delay: `${Math.random() * 7}s`,
-      driftY: -40 - Math.random() * 60
+      duration: `${4.5 + Math.random() * 6}s`,
+      delay: `${Math.random() * 8}s`,
+      driftY: -40 - Math.random() * 80
     }));
   }, []);
 
@@ -201,7 +204,7 @@ export const DashboardView = () => {
   } = stats;
 
   return (
-    <div className="p-8 h-full overflow-y-auto scrollbar-hidden translate-z-0 will-change-transform">
+    <div className="p-8 h-full overflow-y-auto scrollbar-hidden">
       <header className="mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
           <h1 className="text-3xl font-titular text-ink mb-1 font-bold">전투 관제소</h1>
@@ -257,7 +260,7 @@ export const DashboardView = () => {
         {/* Championship Winner Card */}
         <div className="glass-panel p-6 rounded-2xl border-2 border-primary/60 shadow-[0_0_25px_rgba(225,29,72,0.25)] bg-gradient-to-br from-[#2a080e] via-[#0c0f12] to-[#0c0f12] flex flex-col justify-between relative overflow-hidden h-48">
           {/* Intense Base Red Glow */}
-          <div className="absolute inset-0 z-0 pointer-events-none opacity-40 animate-flame-flow bg-gradient-to-br from-primary/40 via-primary/5 to-transparent"></div>
+          <div className="absolute inset-0 z-0 pointer-events-none opacity-40 flame-flow-effect bg-gradient-to-br from-primary/40 via-primary/5 to-transparent"></div>
           
           <div className="absolute top-0 right-0 w-32 h-32 bg-primary/25 rounded-full blur-3xl -mr-10 -mt-10"></div>
           
@@ -266,7 +269,7 @@ export const DashboardView = () => {
             {winnerParticles.map((p) => (
               <div 
                 key={p.id}
-                className={`absolute rounded-full blur-[0.7px] animate-fire-right-flow ${p.color}`}
+                className={`absolute rounded-full blur-[0.7px] fire-right-flow-effect ${p.color}`}
                 style={{ 
                   width: `${p.size}px`,
                   height: `${p.size}px`,
@@ -379,9 +382,18 @@ export const DashboardView = () => {
       </div>
 
       {/* Row 2: Player KPI Cards */}
-      <h2 className="text-sm font-titular text-ink-subtle font-bold tracking-[0.2em] uppercase mb-4 flex items-center gap-2">
-        <Users className="w-4 h-4 text-primary" /> PLAYER TELEMETRY DATA
-      </h2>
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-sm font-titular text-ink-subtle font-bold tracking-[0.2em] uppercase flex items-center gap-2">
+          <Users className="w-4 h-4 text-primary" /> PLAYER TELEMETRY DATA
+        </h2>
+        <button 
+          onClick={() => setIsPlayerDetailOpen(true)}
+          className="flex items-center gap-1.5 px-3 py-1.5 bg-primary/10 border border-primary/30 rounded-lg text-primary text-[11px] font-black hover:bg-primary hover:text-white transition-all active:scale-95 shadow-[0_0_15px_rgba(225,29,72,0.1)]"
+        >
+          <BarChart3 className="w-3.5 h-3.5" />
+          플레이어별 상세
+        </button>
+      </div>
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">
         {/* Most Wins Player */}
         <div className="glass-panel p-6 rounded-2xl border border-hairline/60 bg-[#0d1013] flex flex-col justify-between h-48 group hover:border-primary/50 transition-all">
@@ -590,6 +602,10 @@ export const DashboardView = () => {
         </div>
       </div>
 
+      <PlayerDetailModal 
+        isOpen={isPlayerDetailOpen} 
+        onClose={() => setIsPlayerDetailOpen(false)} 
+      />
     </div>
   );
 };

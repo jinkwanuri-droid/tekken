@@ -37,17 +37,17 @@ export function IntroScreen({ onEnter }: IntroScreenProps) {
     return 'READY TO BATTLE';
   }, [progress]);
 
-  // Reduced particles for performance optimization
+  // Enhanced particles with higher count and dynamic, prominent sizes
   const particles = useMemo(() => {
     const colors = ['bg-primary', 'bg-yellow-400', 'bg-white', 'bg-orange-500'];
-    return [...Array(45)].map((_, i) => {
+    return [...Array(140)].map((_, i) => {
       const color = colors[Math.floor(Math.random() * colors.length)];
-      const size = 0.8 + Math.random() * 2.0;
-      const startX = -10 - Math.random() * 15;
+      const size = 1.2 + Math.random() * 5.0; // Dynamic size variety from 1.2px to 6.2px
+      const startX = -10 - Math.random() * 25;
       const top = Math.random() * 100;
-      const duration = 3 + Math.random() * 4;
-      const delay = Math.random() * 6;
-      const driftY = -80 - Math.random() * 150;
+      const duration = 3.5 + Math.random() * 5;
+      const delay = Math.random() * 8;
+      const driftY = -80 - Math.random() * 160;
       return {
         id: i,
         color,
@@ -82,19 +82,19 @@ export function IntroScreen({ onEnter }: IntroScreenProps) {
           }
           15% { 
             opacity: 1; 
-            transform: translateX(15vw) translateY(calc(var(--drift-y) * 0.15)) scale(1.1); 
+            transform: translateX(20vw) translateY(-15px) scale(1.1); 
           }
           60% { 
-            transform: translateX(70vw) translateY(calc(var(--drift-y) * 0.6)) scale(0.7); 
+            transform: translateX(75vw) translateY(-60px) scale(0.7); 
             opacity: 0.8; 
             filter: blur(1.2px) brightness(2); 
           }
           100% { 
-            transform: translateX(115vw) translateY(var(--drift-y)) scale(0.15); 
+            transform: translateX(120vw) translateY(-150px) scale(0.15); 
             opacity: 0; 
           }
         }
-        .animate-fire-left {
+        .fire-left-effect {
           animation: fire-particle-left var(--duration, 3s) linear infinite;
           will-change: transform, opacity;
         }
@@ -103,7 +103,7 @@ export function IntroScreen({ onEnter }: IntroScreenProps) {
       {/* 1. Background Layers (Gradient and Ambient Glow) */}
       <div className="absolute inset-0 z-0 pointer-events-none">
         <div className="absolute inset-0 bg-gradient-to-br from-[#1a0508] via-black to-black"></div>
-        <div className="absolute inset-0 bg-gradient-to-r from-[#e11d48]/25 via-[#f43f5e]/15 to-transparent animate-flame-flow"></div>
+        <div className="absolute inset-0 bg-gradient-to-r from-[#e11d48]/25 via-[#f43f5e]/15 to-transparent flame-flow-effect"></div>
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(225,29,72,0.2),transparent_75%)] animate-pulse"></div>
       </div>
       
@@ -145,21 +145,21 @@ export function IntroScreen({ onEnter }: IntroScreenProps) {
             <div className="flex flex-col items-center gap-4 animate-fade-in w-full">
               <button
                 onClick={handleEnterClick}
-                className="w-40 py-2.5 px-4 bg-gradient-to-r from-primary to-[#ff3b61] hover:brightness-110 active:scale-95 text-[10px] font-black text-white tracking-[0.25em] uppercase rounded-lg flex items-center justify-center gap-2 transition-all cursor-pointer shadow-[0_4px_20px_rgba(225,29,72,0.4)] border border-primary/30 hover:border-white/40"
+                className="w-64 sm:w-80 py-3.5 px-6 bg-gradient-to-r from-primary to-[#ff3b61] hover:brightness-110 active:scale-95 text-[11px] font-black text-white tracking-[0.25em] uppercase rounded-xl flex items-center justify-center gap-2 transition-all cursor-pointer shadow-[0_4px_25px_rgba(225,29,72,0.45)] border border-primary/30 hover:border-white/45 whitespace-nowrap"
               >
                 <span>ARENA ENTER</span>
-                <ArrowRight className="w-3.5 h-3.5" />
+                <ArrowRight className="w-4 h-4" />
               </button>
               
-              <p className="text-[9px] text-white/40 font-black tracking-widest uppercase leading-none mt-1 animate-pulse">
+              <p className="text-[10px] text-white/40 font-black tracking-widest uppercase leading-none mt-1 animate-pulse whitespace-nowrap">
                 버튼을 클릭하여 아레나 입장
               </p>
             </div>
           )}
         </div>
 
-        <div className="mt-14 pt-6 border-t border-white/5 w-48 flex items-center justify-center">
-           <div className="text-[9px] font-black uppercase tracking-[0.5em] text-white/20">
+        <div className="mt-14 pt-6 border-t border-white/5 w-64 sm:w-80 flex items-center justify-center">
+           <div className="text-[10px] font-black uppercase tracking-[0.4em] text-white/20 whitespace-nowrap text-center">
              Designed by GosL
            </div>
         </div>
@@ -170,7 +170,7 @@ export function IntroScreen({ onEnter }: IntroScreenProps) {
         {particles.map((p) => (
           <div 
             key={p.id}
-            className={`absolute rounded-full blur-[0.2px] animate-fire-left ${p.color}`}
+            className={`absolute rounded-full blur-[0.2px] fire-left-effect ${p.color}`}
             style={{ 
               width: `${p.size}px`,
               height: `${p.size}px`,

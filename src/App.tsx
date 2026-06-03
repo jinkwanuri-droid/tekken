@@ -119,43 +119,43 @@ function AppContent() {
   };
 
   return (
-    <div className="w-full h-screen bg-black bg-[radial-gradient(ellipse_at_center,rgba(225,29,72,0.15),transparent_80%),linear-gradient(to_bottom,#000000,#0c0202)] flex flex-col items-center justify-center font-sans text-ink p-0 sm:pt-0 sm:pb-6 sm:px-6 overflow-hidden">
+    <div className="w-full h-screen bg-black bg-[radial-gradient(ellipse_at_center,rgba(225,29,72,0.15),transparent_80%),linear-gradient(to_bottom,#000000,#0c0202)] flex flex-col items-center justify-center font-sans text-ink p-0 overflow-hidden">
       {showIntro && <IntroScreen onEnter={() => setShowIntro(false)} />}
-      <div className={`w-full ${activeTab === 'bracket' ? 'max-w-[1500px] sm:max-h-[900px]' : 'max-w-5xl sm:max-h-[850px]'} h-full shadow-2xl md:rounded-b-2xl grid grid-rows-[64px_1fr] bg-[#0c0f12] overflow-hidden border-x border-b border-hairline/50 md:border-x md:border-b md:border-hairline/50 relative transition-all duration-300`}>
-        <header className="flex items-center justify-between px-6 border-b border-hairline backdrop-blur-xl z-20 relative overflow-hidden h-16">
+      <div className="w-full h-full shadow-2xl grid grid-rows-[64px_1fr] bg-[#0c0f12] overflow-hidden relative transition-all duration-300">
+        <header className="flex items-center justify-center border-b border-hairline backdrop-blur-xl z-20 relative overflow-hidden h-16 w-full">
           {/* Intense Flame/Fire Animated Background Effect */}
           <div className="absolute inset-0 z-0 pointer-events-none">
             {/* Base Red Glow */}
-            <div className="absolute inset-0 bg-gradient-to-r from-[#e11d48]/25 via-[#f43f5e]/15 to-transparent animate-flame-flow"></div>
+            <div className="absolute inset-0 bg-gradient-to-r from-[#e11d48]/25 via-[#f43f5e]/15 to-transparent flame-flow-effect"></div>
             
             {/* Moving Flame "Tongues" */}
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_120%,rgba(225,29,72,0.4),transparent_50%),radial-gradient(circle_at_80%_120%,rgba(225,29,72,0.3),transparent_50%)] blur-2xl animate-pulse"></div>
             
             {/* Shimmering highlights */}
-            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent animate-shimmer"></div>
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent shimmer-effect"></div>
             
-            {/* Spark Particles - Refined and smaller */}
+            {/* Spark Particles - High density and larger glowing dimensions */}
             <div className="absolute inset-0 overflow-hidden opacity-90">
               <div className="fire-particles-container absolute inset-0">
-                {[...Array(20)].map((_, i) => {
+                {[...Array(65)].map((_, i) => {
                   const colors = ['bg-primary', 'bg-yellow-300', 'bg-white', 'bg-orange-400'];
                   const color = colors[Math.floor(Math.random() * colors.length)];
-                  const size = 0.5 + Math.random() * 1.2;
-                  const startX = -10 - Math.random() * 15;
+                  const size = 1.2 + Math.random() * 4.5; // Upgraded sizes (1.2px ~ 5.7px)
+                  const startX = -10 - Math.random() * 25;
                   const top = Math.random() * 100;
-                  const driftY = -10 - Math.random() * 30;
+                  const driftY = -20 - Math.random() * 50;
                   
                   return (
                     <div 
                       key={i}
-                      className={`absolute rounded-full blur-[0.4px] animate-fire-right-flow ${color}`}
+                      className={`absolute rounded-full blur-[0.4px] fire-right-flow-effect ${color}`}
                       style={{ 
                         width: `${size}px`,
                         height: `${size}px`,
                         left: `${startX}%`, 
                         top: `${top}%`,
-                        '--duration': `${5 + Math.random() * 6}s`,
-                        animationDelay: `${Math.random() * 10}s`,
+                        '--duration': `${4.5 + Math.random() * 6}s`,
+                        animationDelay: `${Math.random() * 9}s`,
                         '--drift-y': `${driftY}px`
                       } as React.CSSProperties}
                     ></div>
@@ -168,45 +168,49 @@ function AppContent() {
             <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-primary/80 to-transparent shadow-[0_0_10px_rgba(225,29,72,0.5)]"></div>
           </div>
 
-          <div className="flex items-center gap-3 relative z-10">
-            <svg width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='2'>
-              <path d='M13 2L3 14h9l-1 8 10-12h-9l1-8z' fill='var(--color-primary)'/>
-            </svg>
-            <span className="text-[13px] md:text-[18px] font-titular text-white tracking-widest whitespace-nowrap">TEKKEN IRON ARENA</span>
-          </div>
-          
-          <div className="flex items-center gap-4 relative z-10">
-            <DesktopNav activeTab={activeTab} setActiveTab={setActiveTab} isAdmin={isAdmin} />
+          <div className="w-full max-w-6xl px-6 flex items-center justify-between relative z-10">
+            <div className="flex items-center gap-3">
+              <svg width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='2'>
+                <path d='M13 2L3 14h9l-1 8 10-12h-9l1-8z' fill='var(--color-primary)'/>
+              </svg>
+              <span className="text-[13px] md:text-[18px] font-titular text-white tracking-widest whitespace-nowrap">TEKKEN IRON ARENA</span>
+            </div>
             
-            {/* Admin Switcher Button */}
-            {isAdmin ? (
-              <div className="flex items-center gap-2 bg-[#10b981]/10 border border-[#10b981]/30 pl-2.5 pr-2 py-1 rounded-xl text-xs font-semibold text-[#10b981] select-none shrink-0">
-                <ShieldCheck className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">관리자</span>
-                <button 
-                  onClick={handleLogout}
-                  className="p-1 -mr-0.5 rounded-lg text-[#10b981]/70 hover:text-white hover:bg-white/5 transition-all cursor-pointer"
-                  title="관리자 로그아웃"
+            <div className="flex items-center gap-4">
+              <DesktopNav activeTab={activeTab} setActiveTab={setActiveTab} isAdmin={isAdmin} />
+              
+              {/* Admin Switcher Button */}
+              {isAdmin ? (
+                <div className="flex items-center gap-2 bg-[#10b981]/10 border border-[#10b981]/30 pl-2.5 pr-2 py-1 rounded-xl text-xs font-semibold text-[#10b981] select-none shrink-0">
+                  <ShieldCheck className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline">관리자</span>
+                  <button 
+                    onClick={handleLogout}
+                    className="p-1 -mr-0.5 rounded-lg text-[#10b981]/70 hover:text-white hover:bg-white/5 transition-all cursor-pointer"
+                    title="관리자 로그아웃"
+                  >
+                    <LogOut className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              ) : (
+                <button
+                  onClick={() => setIsLoginOpen(true)}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[11px] font-black text-ink-subtle hover:text-white border border-hairline/40 hover:border-hairline hover:bg-white/5 transition-all text-center select-none shrink-0 cursor-pointer"
                 >
-                  <LogOut className="w-3.5 h-3.5" />
+                  <Lock className="w-3 h-3 text-primary" />
+                  <span>관리자 로그인</span>
                 </button>
-              </div>
-            ) : (
-              <button
-                onClick={() => setIsLoginOpen(true)}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[11px] font-black text-ink-subtle hover:text-white border border-hairline/40 hover:border-hairline hover:bg-white/5 transition-all text-center select-none shrink-0 cursor-pointer"
-              >
-                <Lock className="w-3 h-3 text-primary" />
-                <span>관리자 로그인</span>
-              </button>
-            )}
+              )}
+            </div>
           </div>
         </header>
 
-        <main className={`bg-[#0c0f12] bg-[radial-gradient(circle_at_top_right,rgba(225,29,72,0.05),transparent)] overflow-y-auto no-scrollbar min-h-0 relative z-10 flex flex-col pt-0 ${activeTab === 'dashboard' ? 'pb-24 md:pb-0' : 'pb-20 md:pb-0'}`}>
-           {activeTab === 'dashboard' && <DashboardView />}
-           {activeTab === 'bracket' && <BracketView isAdmin={isAdmin} />}
-           {activeTab === 'teams' && <TeamsView />}
+        <main className={`bg-[#0c0f12] bg-[radial-gradient(circle_at_top_right,rgba(225,29,72,0.05),transparent)] overflow-y-auto no-scrollbar min-h-0 relative z-10 flex flex-col items-center pt-0 ${activeTab === 'dashboard' ? 'pb-24 md:pb-0' : 'pb-20 md:pb-0'}`}>
+           <div className={`w-full h-full flex flex-col ${activeTab === 'bracket' ? '' : 'max-w-6xl'}`}>
+             {activeTab === 'dashboard' && <DashboardView />}
+             {activeTab === 'bracket' && <BracketView isAdmin={isAdmin} />}
+             {activeTab === 'teams' && <TeamsView />}
+           </div>
          </main>
       </div>
 

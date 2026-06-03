@@ -2,6 +2,16 @@ import { createContext, useContext, useReducer, useEffect, useRef, ReactNode, Di
 import { TournamentState, Team, MatchItem, TournamentSettings, Player, MatchStatus } from './types';
 
 // Helper to generate UUIDs simply
+export const CHARACTER_LIST = [
+  "아수세나", "빅터", "레이나", "카자마 준", "니나 윌리엄스", 
+  "미시마 카즈야", "카자마 진", "폴 피닉스", "마샬 로우", "잭-8", 
+  "라스 알렉산더슨", "링 샤오유", "리로이 스미스", "아스카 카자마", 
+  "에밀리 드 로슈포르(릴리)", "브라이언 퓨리", "화랑", "클라우디오 세라피노", 
+  "레이븐", "레오 클리젠", "스티브 폭스", "쿠마", "요시미츠", "샤힌", 
+  "세르게이 드라구노프", "펭 웨이", "팬더", "리 차오롱", "알리사 보스코노비치", 
+  "자피나", "데빌 진", "에디 골드"
+];
+
 const uuid = () => Math.random().toString(36).substring(2, 9);
 
 const predefinedTeams = [
@@ -516,7 +526,7 @@ type Action =
   | { type: 'UPDATE_PLAYER'; payload: { teamId: string; playerId: string; name: string } }
   | { type: 'SET_CURRENT_MATCH'; payload: string | null }
   | { type: 'UPDATE_SETTINGS'; payload: Partial<TournamentSettings> }
-  | { type: 'SUBMIT_SET_RESULT'; payload: { matchId: string; setIndex: number; team1PlayerId: string; team2PlayerId: string; winnerTeamId: string; team1Character?: string | null; team2Character?: string | null } }
+  | { type: 'SUBMIT_SET_RESULT'; payload: { matchId: string; setIndex: number; team1PlayerId: string; team2PlayerId: string; winnerTeamId: string; team1Character?: string | null; team2Character?: string | null; team1Rounds?: number; team2Rounds?: number } }
   | { type: 'RESET_SET_RESULT'; payload: { matchId: string; setIndex: number } }
   | { type: 'COMPLETE_MATCH'; payload: string }
   | { type: 'BATCH_UPDATE_TEAM'; payload: { teamId: string; name: string; players: string[] } }
@@ -657,7 +667,7 @@ const tournamentReducer = (state: TournamentState, action: Action): TournamentSt
       return { ...state, settings: newSettings };
     }
     case 'SUBMIT_SET_RESULT': {
-      const { matchId, setIndex, team1PlayerId, team2PlayerId, winnerTeamId, team1Character, team2Character } = action.payload;
+      const { matchId, setIndex, team1PlayerId, team2PlayerId, winnerTeamId, team1Character, team2Character, team1Rounds, team2Rounds } = action.payload;
       let newMatch: MatchItem | null = null;
       
       let newMatches = state.matches.map(m => {
@@ -669,7 +679,9 @@ const tournamentReducer = (state: TournamentState, action: Action): TournamentSt
           team2PlayerId,
           winnerTeamId,
           team1Character,
-          team2Character
+          team2Character,
+          team1Rounds: team1Rounds ?? 0,
+          team2Rounds: team2Rounds ?? 0
         };
         const team1Score = newSets.filter(s => s.winnerTeamId === m.team1Id).length;
         const team2Score = newSets.filter(s => s.winnerTeamId === m.team2Id).length;

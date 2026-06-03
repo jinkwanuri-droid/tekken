@@ -66,30 +66,35 @@
 }
 
 @keyframes animate-flame-flow {
-  0% { background-position: 0% 50%; opacity: 0.8; }
-  50% { background-position: 100% 50%; opacity: 1; }
-  100% { background-position: 0% 50%; opacity: 0.8; }
+  0%, 100% { 
+    background-position: 0% 50%; 
+    opacity: 0.45;
+  }
+  50% { 
+    background-position: 100% 50%; 
+    opacity: 0.95;
+  }
 }
 
-@layer utilities {
   @keyframes shake {
     0%, 100% { transform: translateX(0); }
     10%, 30%, 50%, 70%, 90% { transform: translateX(-2px); }
     20%, 40%, 60%, 80% { transform: translateX(2px); }
   }
-  .animate-shake {
+  .shake-effect {
     animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
   }
-  .no-scrollbar::-webkit-scrollbar {
+  .no-scrollbar::-webkit-scrollbar, .scrollbar-hidden::-webkit-scrollbar {
     display: none;
   }
-  .no-scrollbar {
+  .no-scrollbar, .scrollbar-hidden {
     -ms-overflow-style: none;
     scrollbar-width: none;
   }
-  .animate-fire-particle {
+  .fire-particle-effect {
     animation: fire-particle var(--duration, 2s) linear infinite;
     opacity: 0;
+    will-change: transform, opacity;
   }
   .glass-panel {
     @apply bg-[#0c0f12]/90 border border-hairline/80 rounded-lg shadow-none;
@@ -119,25 +124,26 @@
     @apply border-l-[3px] border-l-primary;
   }
   
-  .animate-fire-particle {
-    animation: fire-particle var(--duration, 2s) linear infinite;
+  .fire-right-flow-effect {
+    animation: fire-particle-right-flow var(--duration, 3.5s) linear infinite !important;
     will-change: transform, opacity;
   }
   
-  .animate-fire-right-flow {
-    animation: fire-particle-right-flow var(--duration, 3.5s) linear infinite;
-    will-change: transform, opacity;
+  .flame-flow-effect {
+    background-image: linear-gradient(90deg, 
+      rgba(225, 29, 72, 0.32) 0%, 
+      rgba(244, 63, 94, 0.18) 25%, 
+      rgba(225, 29, 72, 0.42) 50%, 
+      rgba(244, 63, 94, 0.18) 75%, 
+      rgba(225, 29, 72, 0.32) 100%
+    ) !important;
+    background-size: 200% 100% !important;
+    animation: animate-flame-flow 18s ease-in-out infinite !important;
+    will-change: background-position, opacity;
   }
   
-  .animate-flame-flow {
-    background-size: 200% 200%;
-    animation: animate-flame-flow 8s ease infinite;
-    will-change: background-position;
+  .shimmer-effect {
+    animation: shimmer 4s cubic-bezier(0.4, 0, 0.2, 1) infinite !important;
   }
-  
-  .animate-shimmer {
-    animation: shimmer 4s cubic-bezier(0.4, 0, 0.2, 1) infinite;
-  }
-}
 
 

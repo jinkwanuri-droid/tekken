@@ -16,6 +16,8 @@ export type MatchSet = {
   winnerTeamId: string | null; // team1Id or team2Id
   team1Character?: string | null;
   team2Character?: string | null;
+  team1Rounds?: number;
+  team2Rounds?: number;
 };
 
 export type MatchStatus = 'pending' | 'in_progress' | 'completed';

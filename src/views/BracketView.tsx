@@ -21,18 +21,18 @@ export const BracketView = ({ isAdmin }: { isAdmin: boolean }) => {
   const groupBStandings = useMemo(() => computeGroupStandings(state.teams, state.matches, 'B'), [state.teams, state.matches]);
   const groupCStandings = useMemo(() => computeGroupStandings(state.teams, state.matches, 'C'), [state.teams, state.matches]);
 
-  // Champion Arena particles should be memoized (flowing smoothly left to right)
+  // Champion Arena particles with high-density glowing effects
   const championParticles = useMemo(() => {
     const colors = ['bg-primary', 'bg-yellow-300', 'bg-white', 'bg-orange-400'];
-    return [...Array(35)].map((_, i) => ({
+    return [...Array(110)].map((_, i) => ({
       id: i,
       color: colors[Math.floor(Math.random() * colors.length)],
-      size: 0.6 + Math.random() * 2.2,
-      left: `${-20 - Math.random() * 20}%`, // Start off-screen left
+      size: 1.2 + Math.random() * 5.2, // Upgraded size variety (1.2px ~ 6.4px)
+      left: `${-20 - Math.random() * 30}%`, // Start off-screen left
       top: `${Math.random() * 100}%`,
-      duration: `${3.5 + Math.random() * 4.5}s`,
-      delay: `${Math.random() * 7}s`,
-      driftY: -50 - Math.random() * 100
+      duration: `${3.5 + Math.random() * 5}s`,
+      delay: `${Math.random() * 8}s`,
+      driftY: -50 - Math.random() * 110
     }));
   }, []);
 
@@ -190,7 +190,7 @@ export const BracketView = ({ isAdmin }: { isAdmin: boolean }) => {
 
       {isHybrid ? (
         activeTab === 'league' ? (
-          <div className="flex-1 overflow-y-auto p-6 no-scrollbar translate-z-0 will-change-transform">
+          <div className="flex-1 overflow-y-auto p-6 no-scrollbar">
             {/* 3 Groups Horizontal Efficient Layout */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start pb-16">
               
@@ -232,7 +232,7 @@ export const BracketView = ({ isAdmin }: { isAdmin: boolean }) => {
                               {idx === 0 && <span className="text-[#f59e0b]">1위</span>}
                               {idx === 1 && <span className="text-slate-300">2위</span>}
                               {idx === 2 && <span className="text-slate-400">3위</span>}
-                              {idx > 2 && <span className="text-ink-tertiary">{idx + 1}위</span>}
+                              {idx > 2 && <span className="text-zinc-400/70">{idx + 1}위</span>}
                             </td>
                             <td className="py-2 px-1 w-[100px] font-bold text-white truncate">{std.teamName}</td>
                             <td className="py-2 px-1 w-[50px] text-center font-mono text-ink-subtle">{std.won}승 {std.lost}패</td>
@@ -243,7 +243,7 @@ export const BracketView = ({ isAdmin }: { isAdmin: boolean }) => {
                               {isAdvance ? (
                                 <span className="text-[10px] font-bold text-emerald-400">진출</span>
                               ) : (
-                                <span className="text-[10px] text-ink-tertiary">탈락</span>
+                                <span className="text-[10px] text-zinc-500">탈락</span>
                               )}
                             </td>
                           </tr>
@@ -282,12 +282,22 @@ export const BracketView = ({ isAdmin }: { isAdmin: boolean }) => {
                         </div>
 
                         <div className="space-y-1">
-                          <div className={`flex items-center justify-between text-xs font-bold ${match.winnerId === match.team1Id ? 'text-primary' : 'text-white'}`}>
-                            <span className="truncate max-w-[150px]">{getTeamName(match.team1Id)}</span>
+                          <div className={`flex items-center justify-between text-xs font-bold ${match.winnerId === match.team1Id ? 'text-white' : match.winnerId ? 'text-zinc-300 line-through opacity-90' : 'text-white'}`}>
+                            <div className="flex items-center gap-1.5 truncate max-w-[150px]">
+                              <span>{getTeamName(match.team1Id)}</span>
+                              {match.winnerId === match.team1Id && (
+                                <span className="px-1 py-0.5 bg-red-600 text-[8px] text-white font-black rounded leading-none shrink-0 shadow-[0_0_8px_rgba(220,38,38,0.4)]">WIN</span>
+                              )}
+                            </div>
                             <span className="font-mono bg-black/40 px-1 rounded border border-hairline/20">{match.team1Score}</span>
                           </div>
-                          <div className={`flex items-center justify-between text-xs font-bold ${match.winnerId === match.team2Id ? 'text-primary' : 'text-white'}`}>
-                            <span className="truncate max-w-[150px]">{getTeamName(match.team2Id)}</span>
+                          <div className={`flex items-center justify-between text-xs font-bold ${match.winnerId === match.team2Id ? 'text-white' : match.winnerId ? 'text-zinc-300 line-through opacity-90' : 'text-white'}`}>
+                            <div className="flex items-center gap-1.5 truncate max-w-[150px]">
+                              <span>{getTeamName(match.team2Id)}</span>
+                              {match.winnerId === match.team2Id && (
+                                <span className="px-1 py-0.5 bg-red-600 text-[8px] text-white font-black rounded leading-none shrink-0 shadow-[0_0_8px_rgba(220,38,38,0.4)]">WIN</span>
+                              )}
+                            </div>
                             <span className="font-mono bg-black/40 px-1 rounded border border-hairline/20">{match.team2Score}</span>
                           </div>
                         </div>
@@ -335,7 +345,7 @@ export const BracketView = ({ isAdmin }: { isAdmin: boolean }) => {
                               {idx === 0 && <span className="text-[#f59e0b]">1위</span>}
                               {idx === 1 && <span className="text-slate-300">2위</span>}
                               {idx === 2 && <span className="text-slate-400">3위</span>}
-                              {idx > 2 && <span className="text-ink-tertiary">{idx + 1}위</span>}
+                              {idx > 2 && <span className="text-zinc-400/70">{idx + 1}위</span>}
                             </td>
                             <td className="py-2 px-1 w-[100px] font-bold text-white truncate">{std.teamName}</td>
                             <td className="py-2 px-1 w-[50px] text-center font-mono text-ink-subtle">{std.won}승 {std.lost}패</td>
@@ -346,7 +356,7 @@ export const BracketView = ({ isAdmin }: { isAdmin: boolean }) => {
                               {isAdvance ? (
                                 <span className="text-[10px] font-bold text-emerald-400">진출</span>
                               ) : (
-                                <span className="text-[10px] text-ink-tertiary">탈락</span>
+                                <span className="text-[10px] text-zinc-500">탈락</span>
                               )}
                             </td>
                           </tr>
@@ -385,12 +395,22 @@ export const BracketView = ({ isAdmin }: { isAdmin: boolean }) => {
                         </div>
 
                         <div className="space-y-1">
-                          <div className={`flex items-center justify-between text-xs font-bold ${match.winnerId === match.team1Id ? 'text-primary' : 'text-white'}`}>
-                            <span className="truncate max-w-[150px]">{getTeamName(match.team1Id)}</span>
+                          <div className={`flex items-center justify-between text-xs font-bold ${match.winnerId === match.team1Id ? 'text-white' : match.winnerId ? 'text-zinc-300 line-through opacity-90' : 'text-white'}`}>
+                            <div className="flex items-center gap-1.5 truncate max-w-[150px]">
+                              <span>{getTeamName(match.team1Id)}</span>
+                              {match.winnerId === match.team1Id && (
+                                <span className="px-1 py-0.5 bg-red-600 text-[8px] text-white font-black rounded leading-none shrink-0 shadow-[0_0_8px_rgba(220,38,38,0.4)]">WIN</span>
+                              )}
+                            </div>
                             <span className="font-mono bg-black/40 px-1 rounded border border-hairline/20">{match.team1Score}</span>
                           </div>
-                          <div className={`flex items-center justify-between text-xs font-bold ${match.winnerId === match.team2Id ? 'text-primary' : 'text-white'}`}>
-                            <span className="truncate max-w-[150px]">{getTeamName(match.team2Id)}</span>
+                          <div className={`flex items-center justify-between text-xs font-bold ${match.winnerId === match.team2Id ? 'text-white' : match.winnerId ? 'text-zinc-300 line-through opacity-90' : 'text-white'}`}>
+                            <div className="flex items-center gap-1.5 truncate max-w-[150px]">
+                              <span>{getTeamName(match.team2Id)}</span>
+                              {match.winnerId === match.team2Id && (
+                                <span className="px-1 py-0.5 bg-red-600 text-[8px] text-white font-black rounded leading-none shrink-0 shadow-[0_0_8px_rgba(220,38,38,0.4)]">WIN</span>
+                              )}
+                            </div>
                             <span className="font-mono bg-black/40 px-1 rounded border border-hairline/20">{match.team2Score}</span>
                           </div>
                         </div>
@@ -437,7 +457,7 @@ export const BracketView = ({ isAdmin }: { isAdmin: boolean }) => {
                             <td className="py-2 px-2 w-[40px] font-mono font-bold text-ink">
                               {idx === 0 && <span className="text-[#f59e0b]">1위</span>}
                               {idx === 1 && <span className="text-slate-300">2위</span>}
-                              {idx > 1 && <span className="text-ink-tertiary">{idx + 1}위</span>}
+                              {idx > 1 && <span className="text-zinc-400/70">{idx + 1}위</span>}
                             </td>
                             <td className="py-2 px-1 w-[100px] font-bold text-white truncate">{std.teamName}</td>
                             <td className="py-2 px-1 w-[50px] text-center font-mono text-ink-subtle">{std.won}승 {std.lost}패</td>
@@ -448,7 +468,7 @@ export const BracketView = ({ isAdmin }: { isAdmin: boolean }) => {
                               {isAdvance ? (
                                 <span className="text-[10px] font-bold text-emerald-400">진출</span>
                               ) : (
-                                <span className="text-[10px] text-ink-tertiary">탈락</span>
+                                <span className="text-[10px] text-zinc-500">탈락</span>
                               )}
                             </td>
                           </tr>
@@ -487,12 +507,22 @@ export const BracketView = ({ isAdmin }: { isAdmin: boolean }) => {
                         </div>
 
                         <div className="space-y-1">
-                          <div className={`flex items-center justify-between text-xs font-bold ${match.winnerId === match.team1Id ? 'text-primary' : 'text-white'}`}>
-                            <span className="truncate max-w-[150px]">{getTeamName(match.team1Id)}</span>
+                          <div className={`flex items-center justify-between text-xs font-bold ${match.winnerId === match.team1Id ? 'text-white' : match.winnerId ? 'text-zinc-300 line-through opacity-90' : 'text-white'}`}>
+                            <div className="flex items-center gap-1.5 truncate max-w-[150px]">
+                              <span>{getTeamName(match.team1Id)}</span>
+                              {match.winnerId === match.team1Id && (
+                                <span className="px-1 py-0.5 bg-red-600 text-[8px] text-white font-black rounded leading-none shrink-0 shadow-[0_0_8px_rgba(220,38,38,0.4)]">WIN</span>
+                              )}
+                            </div>
                             <span className="font-mono bg-black/40 px-1 rounded border border-hairline/20">{match.team1Score}</span>
                           </div>
-                          <div className={`flex items-center justify-between text-xs font-bold ${match.winnerId === match.team2Id ? 'text-primary' : 'text-white'}`}>
-                            <span className="truncate max-w-[150px]">{getTeamName(match.team2Id)}</span>
+                          <div className={`flex items-center justify-between text-xs font-bold ${match.winnerId === match.team2Id ? 'text-white' : match.winnerId ? 'text-zinc-300 line-through opacity-90' : 'text-white'}`}>
+                            <div className="flex items-center gap-1.5 truncate max-w-[150px]">
+                              <span>{getTeamName(match.team2Id)}</span>
+                              {match.winnerId === match.team2Id && (
+                                <span className="px-1 py-0.5 bg-red-600 text-[8px] text-white font-black rounded leading-none shrink-0 shadow-[0_0_8px_rgba(220,38,38,0.4)]">WIN</span>
+                              )}
+                            </div>
                             <span className="font-mono bg-black/40 px-1 rounded border border-hairline/20">{match.team2Score}</span>
                           </div>
                         </div>
@@ -505,7 +535,7 @@ export const BracketView = ({ isAdmin }: { isAdmin: boolean }) => {
             </div>
           </div>
         ) : (
-          <div className="flex-1 overflow-auto pt-8 px-8 pb-12 no-scrollbar translate-z-0 will-change-transform">
+          <div className="flex-1 overflow-auto pt-8 px-8 pb-12 no-scrollbar">
             {/* 8강 Championship Knockout Tree Layout (QF -> SF -> GF -> CHAMPION) */}
             <div className="glass-panel p-8 rounded-2xl border border-hairline/60 bg-[#0d1013] max-w-[1240px] mx-auto mb-6">
               
@@ -535,13 +565,13 @@ export const BracketView = ({ isAdmin }: { isAdmin: boolean }) => {
                           } ${qf.status === 'completed' ? 'border-success/30 bg-success/[0.01]' : ''}`}
                         >
                           <div className="flex items-center justify-between text-xs py-0.5">
-                            <span className={`font-semibold truncate max-w-[150px] ${qf.winnerId === qf.team1Id ? 'text-primary' : 'text-slate-300'}`}>
+                            <span className={`font-semibold truncate max-w-[150px] ${qf.winnerId === qf.team1Id ? 'text-white' : qf.winnerId ? 'text-zinc-300 line-through opacity-90' : 'text-slate-300'}`}>
                               {getTeamDisplayName(qfId, qf.team1Id, 1)}
                             </span>
                             <span className="font-mono bg-black/40 px-1.5 rounded">{qf.team1Score}</span>
                           </div>
                           <div className="flex items-center justify-between text-xs py-0.5">
-                            <span className={`font-semibold truncate max-w-[150px] ${qf.winnerId === qf.team2Id ? 'text-primary' : 'text-slate-300'}`}>
+                            <span className={`font-semibold truncate max-w-[150px] ${qf.winnerId === qf.team2Id ? 'text-white' : qf.winnerId ? 'text-zinc-300 line-through opacity-90' : 'text-slate-300'}`}>
                               {getTeamDisplayName(qfId, qf.team2Id, 2)}
                             </span>
                             <span className="font-mono bg-black/40 px-1.5 rounded">{qf.team2Score}</span>
@@ -583,13 +613,13 @@ export const BracketView = ({ isAdmin }: { isAdmin: boolean }) => {
                           } ${sf.status === 'completed' ? 'border-success/30 bg-success/[0.01]' : ''}`}
                         >
                           <div className="flex items-center justify-between text-xs py-0.5">
-                            <span className={`font-semibold truncate max-w-[150px] ${sf.winnerId === sf.team1Id ? 'text-primary' : 'text-slate-300'}`}>
+                            <span className={`font-semibold truncate max-w-[150px] ${sf.winnerId === sf.team1Id ? 'text-white' : sf.winnerId ? 'text-zinc-300 line-through opacity-90' : 'text-slate-300'}`}>
                               {getTeamDisplayName(sfId, sf.team1Id, 1)}
                             </span>
                             <span className="font-mono bg-black/40 px-1.5 rounded">{sf.team1Score}</span>
                           </div>
                           <div className="flex items-center justify-between text-xs py-0.5">
-                            <span className={`font-semibold truncate max-w-[150px] ${sf.winnerId === sf.team2Id ? 'text-primary' : 'text-slate-300'}`}>
+                            <span className={`font-semibold truncate max-w-[150px] ${sf.winnerId === sf.team2Id ? 'text-white' : sf.winnerId ? 'text-zinc-300 line-through opacity-90' : 'text-slate-300'}`}>
                               {getTeamDisplayName(sfId, sf.team2Id, 2)}
                             </span>
                             <span className="font-mono bg-black/40 px-1.5 rounded">{sf.team2Score}</span>
@@ -621,7 +651,7 @@ export const BracketView = ({ isAdmin }: { isAdmin: boolean }) => {
                     
                     return (
                       <div className={`relative flex flex-col justify-center translate-z-0 group ${isShuffling ? '' : 'animate-fade-in'}`}>
-                        <div className="absolute left-[-48px] top-1/2 w-[48px] border-b-2 border-hairline/40 pointer-events-none" />
+                        <div className={`absolute left-[-48px] top-1/2 w-[48px] h-[2px] pointer-events-none bg-hairline/40`} />
                         <div 
                           onClick={() => isClickable && setSelectedMatchId(gfId)}
                           className={`glass-panel p-5 rounded-2xl border-2 border-[#f59e0b]/60 bg-gradient-to-br from-[#171109]/40 to-transparent transition-all flex flex-col gap-3 transform-gpu shadow-[0_0_30px_rgba(245,158,11,0.05)] ${
@@ -631,7 +661,7 @@ export const BracketView = ({ isAdmin }: { isAdmin: boolean }) => {
                           } ${gf.status === 'completed' ? 'border-success bg-success/5 shadow-[0_0_40px_rgba(16,185,129,0.15)]' : ''}`}
                         >
                           <div className="flex items-center justify-between text-sm py-1">
-                            <span className={`font-black truncate max-w-[180px] tracking-tight ${gf.winnerId === gf.team1Id ? 'text-[#f59e0b]' : 'text-slate-200'}`}>
+                            <span className={`font-black truncate max-w-[180px] tracking-tight ${gf.winnerId === gf.team1Id ? 'text-white' : gf.winnerId ? 'text-zinc-300 line-through opacity-90' : 'text-slate-200'}`}>
                               {getTeamDisplayName(gfId, gf.team1Id, 1)}
                             </span>
                             <span className="font-mono bg-black/70 px-2.5 py-1 rounded-md border border-[#f59e0b]/20 min-w-[32px] text-center">{gf.team1Score}</span>
@@ -642,7 +672,7 @@ export const BracketView = ({ isAdmin }: { isAdmin: boolean }) => {
                             <div className="h-px w-full bg-gradient-to-r from-transparent via-[#f59e0b] to-transparent"></div>
                           </div>
                           <div className="flex items-center justify-between text-sm py-1">
-                            <span className={`font-black truncate max-w-[180px] tracking-tight ${gf.winnerId === gf.team2Id ? 'text-[#f59e0b]' : 'text-slate-200'}`}>
+                            <span className={`font-black truncate max-w-[180px] tracking-tight ${gf.winnerId === gf.team2Id ? 'text-white' : gf.winnerId ? 'text-zinc-300 line-through opacity-90' : 'text-slate-200'}`}>
                               {getTeamDisplayName(gfId, gf.team2Id, 2)}
                             </span>
                             <span className="font-mono bg-black/70 px-2.5 py-1 rounded-md border border-[#f59e0b]/20 min-w-[32px] text-center">{gf.team2Score}</span>
@@ -675,7 +705,7 @@ export const BracketView = ({ isAdmin }: { isAdmin: boolean }) => {
                               {championParticles.map((p) => (
                                 <div 
                                   key={p.id}
-                                  className={`absolute rounded-full blur-[0.6px] animate-fire-right-flow ${p.color}`}
+                                  className={`absolute rounded-full blur-[0.6px] fire-right-flow-effect ${p.color}`}
                                   style={{ 
                                     width: `${p.size}px`,
                                     height: `${p.size}px`,
@@ -726,7 +756,7 @@ export const BracketView = ({ isAdmin }: { isAdmin: boolean }) => {
           </div>
         )
       ) : (
-        <div className="flex-1 overflow-auto p-8 scrollbar-hidden translate-z-0 will-change-transform">
+        <div className="flex-1 overflow-auto p-8 scrollbar-hidden">
           {/* Standard Elegant Tournament Layout */}
           <div className="flex justify-start items-start min-w-max h-full gap-16 px-4 pb-24">
             {rounds.map((roundMatches, rIdx) => {
@@ -774,9 +804,9 @@ export const BracketView = ({ isAdmin }: { isAdmin: boolean }) => {
                           {/* Team 1 */}
                           <div className={`flex items-center justify-between p-3 border-b border-hairline/50 transition-all ${
                             match.winnerId === match.team1Id 
-                              ? 'bg-primary/15 text-white font-semibold' 
+                              ? 'bg-white/10 text-white font-black' 
                               : match.winnerId && match.winnerId !== match.team1Id 
-                                ? 'text-ink-tertiary line-through opacity-50' 
+                                ? 'text-zinc-300 line-through opacity-90' 
                                 : 'text-ink'
                           }`}>
                             <span className="text-sm truncate w-3/4 font-medium">
@@ -790,9 +820,9 @@ export const BracketView = ({ isAdmin }: { isAdmin: boolean }) => {
                           {/* Team 2 */}
                           <div className={`flex items-center justify-between p-3 transition-all ${
                             match.winnerId === match.team2Id 
-                              ? 'bg-primary/15 text-white font-semibold' 
+                              ? 'bg-white/10 text-white font-black' 
                               : match.winnerId && match.winnerId !== match.team2Id 
-                                ? 'text-ink-tertiary line-through opacity-50' 
+                                ? 'text-zinc-300 line-through opacity-90' 
                                 : 'text-ink'
                           }`}>
                             <span className="text-sm truncate w-3/4 font-medium">

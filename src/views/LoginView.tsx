@@ -10,15 +10,15 @@ export const LoginView = ({ onLogin, onClose }: LoginViewProps) => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState(false);
 
-  // Generate fire particles once to prevent re-creation on render (keystrokes)
+  // Generate fire particles with higher count and size variation to prevent re-creation on render (keystrokes)
   const particles = useMemo(() => {
     const colors = ['bg-primary', 'bg-yellow-400', 'bg-white', 'bg-orange-500'];
-    return [...Array(50)].map((_, i) => {
+    return [...Array(140)].map((_, i) => {
       const color = colors[Math.floor(Math.random() * colors.length)];
-      const size = 0.8 + Math.random() * 2.5;
-      const startX = -15 - Math.random() * 15; // Start off-screen left
+      const size = 1.2 + Math.random() * 5.0; // Upgraded sizes (1.2px ~ 6.2px)
+      const startX = -15 - Math.random() * 25; // Start off-screen left
       const top = Math.random() * 100;
-      const duration = 4 + Math.random() * 5;
+      const duration = 4 + Math.random() * 5.5;
       const delay = Math.random() * 8;
       const driftY = -120 - Math.random() * 180;
       return {
@@ -51,7 +51,7 @@ export const LoginView = ({ onLogin, onClose }: LoginViewProps) => {
       {/* Intense Flame background effect matching header */}
       <div className="absolute inset-0 z-0 pointer-events-none">
         <div className="absolute inset-0 bg-gradient-to-br from-[#1a0508] via-black to-black"></div>
-        <div className="absolute inset-0 bg-gradient-to-r from-[#e11d48]/25 via-[#f43f5e]/15 to-transparent animate-flame-flow"></div>
+        <div className="absolute inset-0 bg-gradient-to-r from-[#e11d48]/25 via-[#f43f5e]/15 to-transparent flame-flow-effect"></div>
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(225,29,72,0.2),transparent_75%)] animate-pulse"></div>
         
         {/* Leftward flying Fire Particles for background */}
@@ -59,7 +59,7 @@ export const LoginView = ({ onLogin, onClose }: LoginViewProps) => {
           {particles.map((p) => (
             <div 
               key={p.id}
-              className={`absolute rounded-full blur-[0.3px] animate-fire-right-flow ${p.color}`}
+              className={`absolute rounded-full blur-[0.3px] fire-right-flow-effect ${p.color}`}
               style={{ 
                 width: `${p.size}px`,
                 height: `${p.size}px`,
@@ -106,7 +106,7 @@ export const LoginView = ({ onLogin, onClose }: LoginViewProps) => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="인증 암호를 입력하십시오"
-                className={`w-full bg-[#161a20]/80 border-hairline border rounded-2xl py-4.5 pl-12 pr-5 text-white text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 transition-all font-medium placeholder:text-ink-tertiary/40 ${error ? 'border-primary animate-shake' : ''}`}
+                className={`w-full bg-[#161a20]/80 border-hairline border rounded-2xl py-4.5 pl-12 pr-5 text-white text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 transition-all font-medium placeholder:text-ink-tertiary/40 ${error ? 'border-primary shake-effect' : ''}`}
                 autoFocus
               />
               
