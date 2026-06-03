@@ -204,8 +204,9 @@ export const DashboardView = () => {
   } = stats;
 
   return (
-    <div className="p-8 h-full overflow-y-auto scrollbar-hidden">
-      <header className="mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+    <div className="w-full h-full overflow-y-auto scrollbar-hidden flex flex-col items-center">
+      <div className="w-full max-w-6xl p-8">
+        <header className="mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
           <h1 className="text-3xl font-titular text-ink mb-1 font-bold">전투 관제소</h1>
           <p className="text-ink-subtle text-xs">매 세트 기록에 기반한 실시간 지표 분석과 챔피언십 랭킹</p>
@@ -258,7 +259,7 @@ export const DashboardView = () => {
       </h2>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
         {/* Championship Winner Card */}
-        <div className="glass-panel p-6 rounded-2xl border-2 border-primary/60 shadow-[0_0_25px_rgba(225,29,72,0.25)] bg-gradient-to-br from-[#2a080e] via-[#0c0f12] to-[#0c0f12] flex flex-col justify-between relative overflow-hidden h-48">
+        <div className="glass-panel p-6 rounded-2xl border-2 border-primary/60 shadow-[0_0_25px_rgba(225,29,72,0.25)] bg-gradient-to-br from-[#2a080e] via-[#130f11] to-[#130f11] flex flex-col justify-between relative overflow-hidden h-48 transition-all duration-300 hover:scale-[1.03] hover:shadow-[0_0_35px_rgba(225,29,72,0.4)] hover:border-primary">
           {/* Intense Base Red Glow */}
           <div className="absolute inset-0 z-0 pointer-events-none opacity-40 flame-flow-effect bg-gradient-to-br from-primary/40 via-primary/5 to-transparent"></div>
           
@@ -286,7 +287,7 @@ export const DashboardView = () => {
           <div className="relative z-10 h-full flex flex-col justify-between">
             <div>
               <div className="flex items-center justify-between mb-4">
-                <span className="px-2 py-0.5 text-[9px] uppercase font-bold tracking-widest bg-primary/25 text-primary border border-primary/40 rounded shadow-[0_0_8px_rgba(225,29,72,0.2)]">Arena Champion</span>
+                <span className="px-2 py-0.5 text-[9px] uppercase font-bold tracking-widest bg-amber-500/10 text-amber-400 border border-amber-500/30 rounded shadow-[0_0_8px_rgba(245,158,11,0.15)]">Arena Champion</span>
                 <Crown className="w-5 h-5 text-[#f59e0b] animate-bounce" />
               </div>
               <p className="text-ink-tertiary text-[10px] mb-1 font-bold uppercase tracking-tighter">최종 우승팀</p>
@@ -312,7 +313,7 @@ export const DashboardView = () => {
         </div>
 
         {/* Highest Win Rate Team Card */}
-        <div className="glass-panel p-6 rounded-2xl border border-hairline/60 bg-[#0d1013] flex flex-col justify-between h-48">
+        <div className="glass-panel p-6 rounded-2xl border border-hairline/60 bg-[#130f11] flex flex-col justify-between h-48 transition-all duration-300 hover:scale-[1.03] hover:border-blue-500/50 hover:shadow-[0_10px_30px_rgba(59,130,246,0.15)]">
           <div>
             <div className="flex items-center justify-between mb-4">
               <span className="px-2 py-0.5 text-[9px] uppercase font-bold tracking-widest bg-blue-500/20 text-blue-400 border border-blue-500/30 rounded">Performance</span>
@@ -325,25 +326,23 @@ export const DashboardView = () => {
               <h3 className="text-lg font-titular text-white/40 font-bold">데이터 부족</h3>
             )}
           </div>
-          <div className="mt-4 flex flex-col gap-0.5">
-            <div className="flex items-center justify-between">
-              <span className="text-xs text-ink-subtle">매치 승률</span>
-              <span className="text-lg font-mono font-black text-blue-400 tracking-tighter leading-none">
-                {highestWinRateTeam && highestWinRateTeam.matchPlayed > 0 ? Math.round((highestWinRateTeam.matchWins / highestWinRateTeam.matchPlayed) * 100) : 0}%
-              </span>
-            </div>
-            <div className="flex items-center justify-end">
+          <div className="mt-4 flex items-center justify-between">
+            <span className="text-xs text-ink-subtle select-none">매치 승률</span>
+            <div className="flex flex-col items-end gap-1 select-none">
               <span className="text-[10px] font-mono font-bold text-blue-400/60 leading-none">
-                ({highestWinRateTeam && (highestWinRateTeam.setWins + highestWinRateTeam.setLosses) > 0 
+                (세트승률 {highestWinRateTeam && (highestWinRateTeam.setWins + highestWinRateTeam.setLosses) > 0 
                   ? Math.round((highestWinRateTeam.setWins / (highestWinRateTeam.setWins + highestWinRateTeam.setLosses)) * 100) 
-                  : 0}% 세트 승률)
+                  : 0}%)
+              </span>
+              <span className="text-2xl font-mono font-black text-blue-400 tracking-tighter leading-none">
+                {highestWinRateTeam && highestWinRateTeam.matchPlayed > 0 ? Math.round((highestWinRateTeam.matchWins / highestWinRateTeam.matchPlayed) * 100) : 0}%
               </span>
             </div>
           </div>
         </div>
 
         {/* Most Diverse Team Card */}
-        <div className="glass-panel p-6 rounded-2xl border border-hairline/60 bg-[#0d1013] flex flex-col justify-between h-48 group relative cursor-help hover:border-purple-500/50 transition-all">
+        <div className="glass-panel p-6 rounded-2xl border border-hairline/60 bg-[#130f11] flex flex-col justify-between h-48 group relative cursor-help hover:border-purple-500/50 transition-all duration-300 hover:scale-[1.03] hover:shadow-[0_10px_30px_rgba(168,85,247,0.15)]">
           <div>
             <div className="flex items-center justify-between mb-4">
               <span className="px-2 py-0.5 text-[9px] uppercase font-bold tracking-widest bg-purple-500/20 text-purple-400 border border-purple-500/30 rounded">Strategy</span>
@@ -396,7 +395,7 @@ export const DashboardView = () => {
       </div>
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">
         {/* Most Wins Player */}
-        <div className="glass-panel p-6 rounded-2xl border border-hairline/60 bg-[#0d1013] flex flex-col justify-between h-48 group hover:border-primary/50 transition-all">
+        <div className="glass-panel p-6 rounded-2xl border border-hairline/60 bg-[#130f11] flex flex-col justify-between h-48 group border-hairline/60 hover:border-primary/50 transition-all duration-300 hover:scale-[1.03] hover:shadow-[0_10px_30px_rgba(225,29,72,0.15)]">
           <div className="flex items-center justify-between">
             <div className="w-8 h-8 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center">
               <Flame className="w-4 h-4 text-primary" />
@@ -414,13 +413,13 @@ export const DashboardView = () => {
             )}
           </div>
           <div className="mt-4 pt-3 border-t border-hairline/30 flex items-center justify-between">
-            <span className="text-[10px] font-bold text-ink-tertiary">세트 승리</span>
-            <span className="text-sm font-mono font-black text-primary">{topWinPlayer?.wins || 0}승</span>
+            <span className="text-[11px] font-bold text-ink-tertiary">세트 전적</span>
+            <span className="text-[15px] font-mono font-black text-primary">{topWinPlayer?.wins || 0}승 {topWinPlayer?.losses || 0}패</span>
           </div>
         </div>
 
         {/* Highest Win Rate Player */}
-        <div className="glass-panel p-6 rounded-2xl border border-hairline/60 bg-[#0d1013] flex flex-col justify-between h-48 group hover:border-blue-500/50 transition-all">
+        <div className="glass-panel p-6 rounded-2xl border border-hairline/60 bg-[#130f11] flex flex-col justify-between h-48 group border-hairline/60 hover:border-blue-500/50 transition-all duration-300 hover:scale-[1.03] hover:shadow-[0_10px_30px_rgba(59,130,246,0.15)]">
           <div className="flex items-center justify-between">
             <div className="w-8 h-8 rounded-lg bg-blue-500/10 border border-blue-500/20 flex items-center justify-center">
               <Activity className="w-4 h-4 text-blue-400" />
@@ -438,15 +437,15 @@ export const DashboardView = () => {
             )}
           </div>
           <div className="mt-4 pt-3 border-t border-hairline/30 flex items-center justify-between">
-            <span className="text-[10px] font-bold text-ink-tertiary">세트 승률</span>
-            <span className="text-sm font-mono font-black text-blue-400">
-              {highestRatePlayer ? Math.round((highestRatePlayer.wins / highestRatePlayer.played) * 100) : 0}%
+            <span className="text-[11px] font-bold text-ink-tertiary">세트 승률</span>
+            <span className="text-[15px] font-mono font-black text-blue-400">
+              {highestRatePlayer ? Math.round((highestRatePlayer.wins / highestRatePlayer.played) * 100) : 0}% <span className="text-[10px] font-normal text-blue-400/80">({highestRatePlayer?.wins || 0}승 {highestRatePlayer?.losses || 0}패)</span>
             </span>
           </div>
         </div>
 
         {/* Most Diverse Player */}
-        <div className="glass-panel p-6 rounded-2xl border border-hairline/60 bg-[#0d1013] flex flex-col justify-between h-48 group relative cursor-help hover:border-purple-500/50 transition-all">
+        <div className="glass-panel p-6 rounded-2xl border border-hairline/60 bg-[#130f11] flex flex-col justify-between h-48 group relative cursor-help transition-all duration-300 hover:scale-[1.03] hover:border-purple-500/50 hover:shadow-[0_10px_30px_rgba(168,85,247,0.15)]">
           <div className="flex items-center justify-between">
             <div className="w-8 h-8 rounded-lg bg-purple-500/10 border border-purple-500/20 flex items-center justify-center">
               <Sparkles className="w-4 h-4 text-purple-400" />
@@ -464,8 +463,10 @@ export const DashboardView = () => {
             )}
           </div>
           <div className="mt-4 pt-3 border-t border-hairline/30 flex items-center justify-between">
-            <span className="text-[10px] font-bold text-ink-tertiary">캐릭터 풀</span>
-            <span className="text-sm font-mono font-black text-purple-400">{maxCharPlayer?.characters.size || 0}종</span>
+            <span className="text-[11px] font-bold text-ink-tertiary">캐릭터 풀 & 전적</span>
+            <span className="text-[15px] font-mono font-black text-purple-400">
+              {maxCharPlayer?.characters.size || 0}종 <span className="text-[10px] font-normal text-purple-400/80">({maxCharPlayer?.wins || 0}승 {maxCharPlayer?.losses || 0}패)</span>
+            </span>
           </div>
 
           {/* Elegant Rollover Champion Pop-over Tooltip */}
@@ -486,7 +487,7 @@ export const DashboardView = () => {
         </div>
 
         {/* Bus King (Lowest Win Rate among Top 8) */}
-        <div className="glass-panel p-6 rounded-2xl border border-hairline/60 bg-[#0d1013] flex flex-col justify-between h-48 group hover:border-orange-400/50 transition-all">
+        <div className="glass-panel p-6 rounded-2xl border border-hairline/60 bg-[#130f11] flex flex-col justify-between h-48 group border-hairline/60 hover:border-orange-400/50 transition-all duration-300 hover:scale-[1.03] hover:shadow-[0_10px_30px_rgba(251,146,60,0.15)]">
           <div className="flex items-center justify-between">
             <div className="w-8 h-8 rounded-lg bg-orange-400/10 border border-orange-400/20 flex items-center justify-center">
               <HeartCrack className="w-4 h-4 text-orange-400" />
@@ -507,9 +508,9 @@ export const DashboardView = () => {
             )}
           </div>
           <div className="mt-4 pt-3 border-t border-hairline/30 flex items-center justify-between">
-            <span className="text-[10px] font-bold text-ink-tertiary">세트 승률</span>
-            <span className="text-sm font-mono font-black text-orange-400">
-              {busKingPlayer ? Math.round((busKingPlayer.wins / busKingPlayer.played) * 100) : 0}%
+            <span className="text-[11px] font-bold text-ink-tertiary">세트 승률</span>
+            <span className="text-[15px] font-mono font-black text-orange-400">
+              {busKingPlayer ? Math.round((busKingPlayer.wins / busKingPlayer.played) * 100) : 0}% <span className="text-[10px] font-normal text-orange-400/80">({busKingPlayer?.wins || 0}승 {busKingPlayer?.losses || 0}패)</span>
             </span>
           </div>
         </div>
@@ -521,7 +522,7 @@ export const DashboardView = () => {
       </h2>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         {/* Most Picked Characters TOP 3 */}
-        <div className="glass-panel p-6 rounded-2xl border border-hairline/40 bg-[#0d1013] flex flex-col h-48">
+        <div className="glass-panel p-6 rounded-2xl border border-hairline/40 bg-[#130f11] flex flex-col h-48">
           <div className="flex items-center justify-between mb-3">
             <div>
               <p className="text-[10px] text-ink-tertiary uppercase font-mono tracking-widest leading-none mb-1">POPULARITY MEASURE</p>
@@ -533,13 +534,16 @@ export const DashboardView = () => {
           <div className="flex-1 flex flex-col justify-center space-y-2.5">
             {top3PickChars.length > 0 ? top3PickChars.map((c, idx) => (
               <div key={c.name} className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <span className={`w-4 h-4 flex items-center justify-center rounded text-[9px] font-black ${idx === 0 ? 'bg-primary text-white' : 'bg-white/10 text-ink-subtle'}`}>
+                <div className="flex items-center gap-2 min-w-0 flex-1">
+                  <span className={`w-4 h-4 flex items-center justify-center rounded text-[9px] font-black shrink-0 ${idx === 0 ? 'bg-primary text-white' : 'bg-white/10 text-ink-subtle'}`}>
                     {idx + 1}
                   </span>
-                  <span className="text-xs font-bold text-ink truncate max-w-[100px]">{c.name}</span>
+                  <div className="flex items-baseline gap-1.5 min-w-0">
+                    <span className="text-xs font-bold text-ink truncate max-w-[90px]">{c.name}</span>
+                    <span className="text-[9px] font-normal text-ink-tertiary">({c.wins}승 {c.losses}패)</span>
+                  </div>
                 </div>
-                <span className="text-xs font-mono font-black text-primary">{c.picks}회</span>
+                <span className="text-xs font-mono font-black text-primary pl-2 shrink-0">{c.picks}회</span>
               </div>
             )) : (
               <p className="text-[10px] text-ink-tertiary text-center italic py-2">기록 대기 중</p>
@@ -548,7 +552,7 @@ export const DashboardView = () => {
         </div>
 
         {/* Highest Win Rate Characters TOP 3 */}
-        <div className="glass-panel p-6 rounded-2xl border border-hairline/40 bg-[#0d1013] flex flex-col h-48">
+        <div className="glass-panel p-6 rounded-2xl border border-hairline/40 bg-[#130f11] flex flex-col h-48">
           <div className="flex items-center justify-between mb-3">
             <div>
               <p className="text-[10px] text-ink-tertiary uppercase font-mono tracking-widest leading-none mb-1">WINNING POTENTIAL</p>
@@ -560,13 +564,16 @@ export const DashboardView = () => {
           <div className="flex-1 flex flex-col justify-center space-y-2.5">
             {top3WinChars.length > 0 ? top3WinChars.map((c, idx) => (
               <div key={c.name} className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <span className={`w-4 h-4 flex items-center justify-center rounded text-[9px] font-black ${idx === 0 ? 'bg-emerald-500 text-white' : 'bg-white/10 text-ink-subtle'}`}>
+                <div className="flex items-center gap-2 min-w-0 flex-1">
+                  <span className={`w-4 h-4 flex items-center justify-center rounded text-[9px] font-black shrink-0 ${idx === 0 ? 'bg-emerald-500 text-white' : 'bg-white/10 text-ink-subtle'}`}>
                     {idx + 1}
                   </span>
-                  <span className="text-xs font-bold text-ink truncate max-w-[100px]">{c.name}</span>
+                  <div className="flex items-baseline gap-1.5 min-w-0">
+                    <span className="text-xs font-bold text-ink truncate max-w-[90px]">{c.name}</span>
+                    <span className="text-[9px] font-normal text-ink-tertiary">({c.wins}승 {c.losses}패)</span>
+                  </div>
                 </div>
-                <span className="text-xs font-mono font-black text-emerald-400">{Math.round((c.wins / c.picks) * 100)}%</span>
+                <span className="text-xs font-mono font-black text-emerald-400 pl-2 shrink-0">{Math.round((c.wins / c.picks) * 100)}%</span>
               </div>
             )) : (
               <p className="text-[10px] text-ink-tertiary text-center italic py-2">기록 대기 중</p>
@@ -575,7 +582,7 @@ export const DashboardView = () => {
         </div>
 
         {/* Lowest Win Rate Characters TOP 3 */}
-        <div className="glass-panel p-6 rounded-2xl border border-hairline/40 bg-[#0d1013] flex flex-col h-48">
+        <div className="glass-panel p-6 rounded-2xl border border-hairline/40 bg-[#130f11] flex flex-col h-48">
           <div className="flex items-center justify-between mb-3">
             <div>
               <p className="text-[10px] text-ink-tertiary uppercase font-mono tracking-widest leading-none mb-1">STRUGGLING META</p>
@@ -587,13 +594,16 @@ export const DashboardView = () => {
           <div className="flex-1 flex flex-col justify-center space-y-2.5">
             {top3LossChars.length > 0 ? top3LossChars.map((c, idx) => (
               <div key={c.name} className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <span className={`w-4 h-4 flex items-center justify-center rounded text-[9px] font-black ${idx === 0 ? 'bg-rose-500 text-white' : 'bg-white/10 text-ink-subtle'}`}>
+                <div className="flex items-center gap-2 min-w-0 flex-1">
+                  <span className={`w-4 h-4 flex items-center justify-center rounded text-[9px] font-black shrink-0 ${idx === 0 ? 'bg-rose-500 text-white' : 'bg-white/10 text-ink-subtle'}`}>
                     {idx + 1}
                   </span>
-                  <span className="text-xs font-bold text-ink truncate max-w-[100px]">{c.name}</span>
+                  <div className="flex items-baseline gap-1.5 min-w-0">
+                    <span className="text-xs font-bold text-ink truncate max-w-[90px]">{c.name}</span>
+                    <span className="text-[9px] font-normal text-ink-tertiary">({c.wins}승 {c.losses}패)</span>
+                  </div>
                 </div>
-                <span className="text-xs font-mono font-black text-rose-500">{Math.round((c.wins / c.picks) * 100)}%</span>
+                <span className="text-xs font-mono font-black text-rose-500 pl-2 shrink-0">{Math.round((c.wins / c.picks) * 100)}%</span>
               </div>
             )) : (
               <p className="text-[10px] text-ink-tertiary text-center italic py-2">기록 대기 중</p>
@@ -606,6 +616,7 @@ export const DashboardView = () => {
         isOpen={isPlayerDetailOpen} 
         onClose={() => setIsPlayerDetailOpen(false)} 
       />
+      </div>
     </div>
   );
 };

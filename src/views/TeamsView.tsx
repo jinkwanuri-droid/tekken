@@ -44,13 +44,16 @@ export const TeamsView = () => {
   };
 
   return (
-    <div className="flex flex-col h-full bg-canvas/30">
-      <header className="p-6 border-b border-hairline bg-surface-1/50 backdrop-blur-md shrink-0">
-        <h1 className="text-2xl font-titular text-ink mb-1">팀 및 설정 관리</h1>
-        <p className="text-ink-subtle text-sm">토너먼트 참가 기준 및 참가자 명단을 수정합니다.</p>
+    <div className="flex flex-col h-full bg-canvas/30 w-full items-center">
+      <header className="w-full border-b border-hairline bg-surface-1/50 backdrop-blur-md shrink-0 flex justify-center">
+        <div className="w-full max-w-6xl p-6">
+          <h1 className="text-2xl font-titular text-ink mb-1">팀 및 설정 관리</h1>
+          <p className="text-ink-subtle text-sm">토너먼트 참가 기준 및 참가자 명단을 수정합니다.</p>
+        </div>
       </header>
 
-      <div className="flex-1 overflow-auto p-8 scrollbar-hidden">
+      <div className="w-full flex-1 overflow-auto scrollbar-hidden flex justify-center">
+        <div className="w-full max-w-6xl p-8">
         
         {/* Settings Area */}
         <div className="glass-panel p-6 rounded-xl mb-12 border-primary/20 bg-primary/5">
@@ -167,6 +170,7 @@ export const TeamsView = () => {
           ))}
         </div>
 
+      </div>
       </div>
     </div>
   );

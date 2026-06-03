@@ -108,7 +108,7 @@
     will-change: transform, opacity;
   }
   .glass-panel {
-    @apply bg-[#0c0f12]/90 border border-hairline/80 rounded-lg shadow-none;
+    @apply bg-[#130f11]/92 border border-hairline/80 rounded-lg shadow-none;
     transform: translateZ(0);
     backface-visibility: hidden;
   }
@@ -142,11 +142,11 @@
   
   .flame-flow-effect {
     background-image: linear-gradient(90deg, 
-      rgba(225, 29, 72, 0.32) 0%, 
-      rgba(244, 63, 94, 0.18) 25%, 
-      rgba(225, 29, 72, 0.42) 50%, 
-      rgba(244, 63, 94, 0.18) 75%, 
-      rgba(225, 29, 72, 0.32) 100%
+      rgba(159, 18, 57, 0.24) 0%, 
+      rgba(40, 10, 12, 0.28) 25%, 
+      rgba(190, 24, 74, 0.35) 50%, 
+      rgba(40, 10, 12, 0.28) 75%, 
+      rgba(159, 18, 57, 0.24) 100%
     ) !important;
     background-size: 200% 100% !important;
     animation: animate-flame-flow 18s ease-in-out infinite !important;
@@ -155,6 +155,19 @@
   
   .shimmer-effect {
     animation: shimmer 4s cubic-bezier(0.4, 0, 0.2, 1) infinite !important;
+  }
+
+  @keyframes bg-pulse-red {
+    0%, 100% {
+      background-color: rgba(225, 29, 72, 0.05);
+    }
+    50% {
+      background-color: rgba(225, 29, 72, 0.18);
+    }
+  }
+
+  .animate-bg-pulse-red {
+    animation: bg-pulse-red 3s ease-in-out infinite;
   }
 
 

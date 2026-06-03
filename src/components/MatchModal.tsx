@@ -502,7 +502,7 @@ const SetRow = ({
         /* Completed view (One pure compact row) */
         <div className="flex-grow flex items-center justify-between px-2 text-xs">
             {/* Team 1 Finished */}
-            <div className={`flex-1 flex items-center gap-1.5 ${set.winnerTeamId === team1.id ? 'text-white font-black' : 'text-zinc-300 line-through opacity-90'}`}>
+            <div className={`flex-1 flex items-center gap-1.5 ${set.winnerTeamId === team1.id ? 'text-white font-black' : 'text-zinc-500 line-through opacity-75'}`}>
               <span className="text-md font-titular">{t1PlayerName}</span>
               {set.team1Character && (
                 <span className={`text-[10px] font-mono px-1.5 py-0.5 bg-black/20 rounded ${set.winnerTeamId === team1.id ? 'text-white/80' : 'text-zinc-500'}`}>
@@ -523,7 +523,7 @@ const SetRow = ({
             </div>
             
             {/* Team 2 Finished */}
-            <div className={`flex-1 flex items-center justify-end gap-1.5 text-right ${set.winnerTeamId === team2.id ? 'text-white font-black' : 'text-zinc-300 line-through opacity-90'}`}>
+            <div className={`flex-1 flex items-center justify-end gap-1.5 text-right ${set.winnerTeamId === team2.id ? 'text-white font-black' : 'text-zinc-500 line-through opacity-75'}`}>
               {set.team2Character && (
                 <span className={`text-[10px] font-mono px-1.5 py-0.5 bg-black/20 rounded ${set.winnerTeamId === team2.id ? 'text-white/80' : 'text-zinc-500'}`}>
                   {set.team2Character}

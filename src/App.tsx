@@ -4,12 +4,12 @@ import { TeamsView } from './views/TeamsView';
 import { DashboardView } from './views/DashboardView';
 import { LoginView } from './views/LoginView';
 import { TournamentProvider } from './store';
-import { Gamepad2, Users, GitMerge, LayoutDashboard, Lock, ShieldCheck, LogOut } from 'lucide-react';
+import { Gamepad2, Users, Trophy, LayoutDashboard, Lock, ShieldCheck, LogOut } from 'lucide-react';
 import { IntroScreen } from './components/IntroScreen';
 
 const menuItems = [
   { id: 'dashboard', label: '대시보드', icon: LayoutDashboard, adminOnly: false },
-  { id: 'bracket', label: '대진표', icon: GitMerge, adminOnly: false },
+  { id: 'bracket', label: '대진표', icon: Trophy, adminOnly: false },
   { id: 'teams', label: '팀 및 선수 관리', icon: Users, adminOnly: true },
 ];
 
@@ -121,15 +121,15 @@ function AppContent() {
   return (
     <div className="w-full h-screen bg-black bg-[radial-gradient(ellipse_at_center,rgba(225,29,72,0.15),transparent_80%),linear-gradient(to_bottom,#000000,#0c0202)] flex flex-col items-center justify-center font-sans text-ink p-0 overflow-hidden">
       {showIntro && <IntroScreen onEnter={() => setShowIntro(false)} />}
-      <div className="w-full h-full shadow-2xl grid grid-rows-[64px_1fr] bg-[#0c0f12] overflow-hidden relative transition-all duration-300">
+      <div className="w-full h-full shadow-2xl grid grid-rows-[64px_1fr] bg-[#060203] overflow-hidden relative transition-all duration-300">
         <header className="flex items-center justify-center border-b border-hairline backdrop-blur-xl z-20 relative overflow-hidden h-16 w-full">
           {/* Intense Flame/Fire Animated Background Effect */}
           <div className="absolute inset-0 z-0 pointer-events-none">
             {/* Base Red Glow */}
-            <div className="absolute inset-0 bg-gradient-to-r from-[#e11d48]/25 via-[#f43f5e]/15 to-transparent flame-flow-effect"></div>
+            <div className="absolute inset-0 bg-gradient-to-r from-[#e11d48]/20 via-[#f43f5e]/10 to-transparent flame-flow-effect"></div>
             
             {/* Moving Flame "Tongues" */}
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_120%,rgba(225,29,72,0.4),transparent_50%),radial-gradient(circle_at_80%_120%,rgba(225,29,72,0.3),transparent_50%)] blur-2xl animate-pulse"></div>
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_120%,rgba(225,29,72,0.31),transparent_50%),radial-gradient(circle_at_80%_120%,rgba(225,29,72,0.22),transparent_50%)] blur-2xl animate-pulse"></div>
             
             {/* Shimmering highlights */}
             <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent shimmer-effect"></div>
@@ -205,8 +205,8 @@ function AppContent() {
           </div>
         </header>
 
-        <main className={`bg-[#0c0f12] bg-[radial-gradient(circle_at_top_right,rgba(225,29,72,0.05),transparent)] overflow-y-auto no-scrollbar min-h-0 relative z-10 flex flex-col items-center pt-0 ${activeTab === 'dashboard' ? 'pb-24 md:pb-0' : 'pb-20 md:pb-0'}`}>
-           <div className={`w-full h-full flex flex-col ${activeTab === 'bracket' ? '' : 'max-w-6xl'}`}>
+        <main className={`bg-[#060203] bg-[radial-gradient(circle_at_top_right,rgba(225,29,72,0.04),transparent)] overflow-y-auto no-scrollbar min-h-0 relative z-10 flex flex-col items-center pt-0 ${activeTab === 'dashboard' ? 'pb-24 md:pb-0' : 'pb-20 md:pb-0'}`}>
+           <div className="w-full h-full flex flex-col">
              {activeTab === 'dashboard' && <DashboardView />}
              {activeTab === 'bracket' && <BracketView isAdmin={isAdmin} />}
              {activeTab === 'teams' && <TeamsView />}
